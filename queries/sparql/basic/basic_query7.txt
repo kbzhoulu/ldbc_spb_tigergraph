@@ -1,0 +1,15 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT ?cwork ?dateModif ?title ?category ?liveCoverage ?audience 
+WHERE{
+ service <http://localhost:7200/repositories/ldbc-spb> {
+ ?cwork a cwork:BlogPost .
+ ?cwork cwork:dateModified ?dateModif .
+ ?cwork cwork:title ?title .
+ ?cwork cwork:category ?category .
+ ?cwork cwork:liveCoverage ?liveCoverage .
+ ?cwork cwork:audience ?audience .
+ FILTER(?dateModif >= "2011-09-01T00:00:00.000"^^<http://www.w3.org/2001/XMLSchema#dateTime> && ?dateModif < "2011-09-30T23:59:59.999"^^<http://www.w3.org/2001/XMLSchema#dateTime>) .
+}
+}
+LIMIT 100

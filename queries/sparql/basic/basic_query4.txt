@@ -1,0 +1,21 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+Select *
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+    {?creativework ?p1 ?o1 .}
+    union
+    {?s ?p ?creativework .}
+{
+SELECT ?creativework
+WHERE {
+ ?creativework cwork:tag <http://dbpedia.org/resource/Philip_Metcalfe> ;
+ cwork:dateCreated ?created ;
+ cwork:primaryFormat cwork:TextualFormat ;
+ a cwork:BlogPost .
+}
+}
+}
+}
+ORDER BY DESC(?created)
+LIMIT 10

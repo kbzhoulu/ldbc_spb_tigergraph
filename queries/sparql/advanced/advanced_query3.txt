@@ -1,0 +1,12 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT ?minute ((COUNT(*)) as ?count)
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ ?r cwork:dateModified ?dateTime .
+ FILTER (?dateTime > "2011-10-30T17:20:20Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> &&
+?dateTime < "2011-10-30T18:20:20Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>) .
+}
+}
+GROUP BY (MINUTES(?dateTime) as ?minute)
+ORDER BY ?minute

@@ -1,0 +1,15 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT ?topic ((COUNT(*)) AS ?count)
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ ?creativeWork a cwork:CreativeWork ;
+ cwork:about ?topic ;
+ cwork:dateModified ?dt ;
+ cwork:audience cwork:InternationalAudience .
+ FILTER (?dt > "2011-10-30T17:33:56Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> && 
+               ?dt < "2011-10-30T18:33:56Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>) .
+}
+}
+GROUP BY ?topic
+ORDER BY DESC(?count)

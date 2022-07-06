@@ -1,0 +1,18 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT DISTINCT ?thing ?about ?mentions ?category ?dateModified
+WHERE
+{
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ ?thing rdf:type cwork:CreativeWork .
+ ?thing cwork:about ?about .
+ ?thing cwork:mentions ?mentions .
+ ?thing cwork:category ?category .
+ ?thing cwork:dateModified ?dateModified .
+ FILTER ((?category = <http://www.bbc.co.uk/category/Events>) || (?category =
+<http://www.bbc.co.uk/category/Persons>))
+}
+}
+ORDER BY ?dateModified
+LIMIT 100

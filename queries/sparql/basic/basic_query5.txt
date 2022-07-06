@@ -1,0 +1,33 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+SELECT (COALESCE(?name, ?label1, "none") as ?label) ?cnt
+{
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ {
+ SELECT ?topic ((COUNT(*)) AS ?cnt)
+ WHERE
+ {
+ {
+ ?creativeWork a cwork:BlogPost ;
+ cwork:tag ?topic ;
+ cwork:dateModified ?dt ;
+ cwork:audience cwork:InternationalAudience .
+ FILTER (?dt > "2011-10-06T02:40:51Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> &&
+?dt < "2011-10-10T03:40:51Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>) .
+ } UNION {
+ BIND(<urn:fake> as ?topic)
+ }
+ }
+ GROUP BY ?topic
+ }
+ OPTIONAL {
+ ?topic rdfs:label ?label1 .
+ }
+ OPTIONAL {
+ ?topic foaf:name ?name .
+ }
+}
+}
+ORDER BY DESC(?cnt)

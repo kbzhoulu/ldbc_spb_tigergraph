@@ -1,0 +1,24 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT ?year ?month ((COUNT(distinct ?tag)) AS ?count) 
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+?creativework a cwork:CreativeWork .
+?creativework cwork:title ?title .
+?creativework cwork:description ?description .
+?creativework cwork:category ?category .
+?creativework cwork:tag ?tag .
+?creativework cwork:audience ?audience .
+?creativework cwork:liveCoverage ?liveCoverage .
+?creativework cwork:primaryFormat ?primaryFormat .
+?creativework cwork:dateCreated ?dateCreated .
+BIND (day(?dateCreated) as ?day) .
+BIND (year(?dateCreated) as ?year) .
+BIND (month(?dateCreated) as ?month) .
+FILTER (CONTAINS(?title, "enjoyment") || CONTAINS(?description, "retain")) .
+FILTER (?category = <http://www.bbc.co.uk/category/Persons>) .
+}
+}
+GROUP BY ?year ?month
+ORDER BY ?year ?month
+LIMIT 500

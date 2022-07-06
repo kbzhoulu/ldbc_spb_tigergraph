@@ -1,0 +1,20 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+PREFIX bbc: <http://www.bbc.co.uk/ontologies/bbc/>
+
+SELECT ?mentions ((COUNT(*)) as ?count)
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ ?creativeWork cwork:mentions ?mentions .
+ {
+ SELECT ?creativeWork (count(*) as ?pcCount) {
+ ?creativeWork a cwork:CreativeWork .
+ ?creativeWork bbc:primaryContentOf ?pc .
+ }
+ GROUP BY (?creativeWork)
+ }
+ FILTER(?pcCount > 1)
+}
+}
+GROUP BY ?mentions
+ORDER BY DESC(?count)
+LIMIT 10

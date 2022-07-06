@@ -1,0 +1,33 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT ?creativeWork2 ?mentionsCount ?dateCreated ?thing2
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ {
+ SELECT ((MAX(?cnt)) AS ?maxcnt)
+ WHERE {
+ {
+ SELECT ?creativeWork ((count(*)) AS ?cnt)
+ WHERE {
+ ?creativeWork a cwork:CreativeWork .
+ ?creativeWork cwork:mentions ?thing .
+ }
+ GROUP BY ?creativeWork
+ }
+ } 
+ } .
+ {
+ SELECT ?creativeWork2 ((COUNT(*)) AS ?mentionsCount)
+ WHERE {
+ ?creativeWork2 cwork:mentions ?thing2 .
+ ?creativeWork2 cwork:dateCreated ?dateCreated .
+ }
+ GROUP BY ?creativeWork2
+ } .
+ FILTER (?mentionsCount = ?maxcnt)
+ ?creativeWork2 cwork:mentions ?thing2 .
+ ?creativeWork2 cwork:dateCreated ?dateCreated .
+}
+}
+ORDER BY DESC(?dateCreated)
+LIMIT 10

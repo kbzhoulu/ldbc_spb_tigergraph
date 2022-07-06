@@ -1,0 +1,28 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT ?who ?interactionDays 
+WHERE{
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ {
+ SELECT ?who ((COUNT(*)) AS ?interactionDays) {
+ {
+ SELECT DISTINCT ?year ?month ?day ?who
+ WHERE {
+ ?cw a cwork:CreativeWork .
+ ?cw cwork:about <http://dbpedia.org/resource/Anders_Henriksson_(poker_player)> .
+ ?cw cwork:about ?who .
+ ?cw cwork:dateCreated ?dateCreated .
+ BIND (day(?dateCreated) AS ?day) .
+ BIND (month(?dateCreated) AS ?month) .
+ BIND (year(?dateCreated) AS ?year) .
+ FILTER (?who != <http://dbpedia.org/resource/Anders_Henriksson_(poker_player)>) .
+ }
+ GROUP BY ?year ?month ?day ?who
+ }
+ }
+ GROUP BY ?who
+ }
+}
+}
+ORDER BY DESC(?interactionDays) ?who
+LIMIT 10

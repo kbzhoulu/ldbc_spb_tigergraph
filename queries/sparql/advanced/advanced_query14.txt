@@ -1,0 +1,31 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+PREFIX bbc: <http://www.bbc.co.uk/ontologies/bbc/>
+
+SELECT ?thing ?about ?mentions ?category ?dateModified ?thumbnail ?primaryFormat
+WHERE
+{
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ ?thing rdf:type cwork:CreativeWork . 
+ ?thing cwork:tag ?tag .
+ ?thing cwork:category ?category .
+ ?thing cwork:dateModified ?dateModified .
+ ?thing cwork:thumbnail ?thumbnail .
+ ?thing cwork:audience ?audience .
+ ?thing cwork:primaryFormat ?primaryFormat .
+ ?thing bbc:primaryContentOf ?primaryContent .
+ ?primaryContent bbc:webDocumentType ?webdoc .
+ OPTIONAL {
+ ?thing cwork:mentions ?mentions .
+ ?thing cwork:about ?about .
+ }
+ OPTIONAL {
+ ?thing cwork:audience cwork:InternationalAudience .
+ }
+ FILTER ( (?audience = cwork:InternationalAudience) && (?webdoc = bbc:Mobile) && 
+((?primaryFormat = cwork:TextualFormat) || 
+(?primaryFormat = cwork:PictureGalleryFormat)) )
+}
+}
+ORDER BY DESC(?dateModified)
+LIMIT 200

@@ -1,0 +1,17 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT ?aboutType ((COUNT (*)) as ?count) ?coverage ?audience
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ ?creativeWork a cwork:CreativeWork .
+ ?creativeWork cwork:about ?about .
+ ?about a ?aboutType .
+ ?creativeWork cwork:liveCoverage ?coverage .
+ ?creativeWork cwork:audience ?audience .
+ FILTER ((?coverage = "false"^^<http://www.w3.org/2001/XMLSchema#boolean>) && (?audience =
+cwork:InternationalAudience)) .
+}
+}
+GROUP BY ?aboutType ?coverage ?audience
+ORDER BY DESC(?count)
+LIMIT 10

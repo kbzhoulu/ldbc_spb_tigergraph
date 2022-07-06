@@ -1,0 +1,52 @@
+CREATE QUERY advanced_query5_optimized() FOR GRAPH ldbc_test { 
+  /* Write query logic here */ 
+  /*
+  query name: advanced_query5_optimized.txt
+  query description:
+  Retrieve the N most popular topics that creative works are about, selecting from two
+  categories. This select query returns the first N results grouped by topic, ordered in
+  descending order using the number of uses of each topic. Result is further limited by
+  selecting only two of categories of creative works
+  
+  example: 
+  event: http://dbpedia.org/ontology/Event
+  category1: http://www.bbc.co.uk/category/Events
+  category2: http://www.bbc.co.uk/category/Company
+  */
+  SumAccum<INT> @cw;
+  
+  # find the instances have either given category 
+  category = SELECT s
+             FROM ClassInstance:s
+             WHERE s.uri == "http://www.bbc.co.uk/category/Events" OR
+                   s.uri == "http://www.bbc.co.uk/category/Company";
+  
+  instances = SELECT s
+              FROM category:t - (<hasInstanceObject:e) - ObjectPropertyInstance:t1 -
+                   (<hasObjectPropertyInstance:e1) - ClassInstance:s
+              WHERE t1.uri == "http://www.bbc.co.uk/ontologies/creativework/category";
+  
+  # find the number of creativework that each topic has
+  event = SELECT s
+          FROM ClassInstance:s
+          WHERE s.uri == "http://dbpedia.org/ontology/Event";
+  
+  about = SELECT t1
+          FROM instances:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
+               (hasInstanceObject>:e1) - ClassInstance:t1 
+          WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about"
+          ACCUM t1.@cw += 1;
+  
+  filteredAbout = SELECT s
+                  FROM event:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - about:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+          
+  # Print out the result
+  SELECT s.uri AS abouts, s.@cw AS counts INTO T
+  FROM filteredAbout:s
+  GROUP BY s.uri
+  ORDER BY counts DESC, abouts ASC
+  LIMIT 1000;
+  
+  PRINT T;
+}

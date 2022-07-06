@@ -1,0 +1,59 @@
+CREATE QUERY advanced_query20_optimized(/* Parameters here */) FOR GRAPH ldbc_test { 
+  /* Write query logic here */ 
+  /*
+  query name: advanced_query20.txt
+  query description:
+  Construct creative works, which contain a certain word in their title or description. A
+  full-text search query.
+  */
+  
+  MaxAccum<STRING> @title;
+  MaxAccum<STRING> @description;
+  MaxAccum<STRING> @dateCreated;
+  MaxAccum<STRING> @dateModified;
+  ListAccum<STRING> @about;
+  ListAccum<STRING> @category;
+  ListAccum<STRING> @primaryContentOf;
+  ListAccum<STRING> @webDocumentType;
+  
+  # find all creativeworks
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
+  
+  creativeworks = SELECT s
+                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # collect the info of creativeworks
+  result = SELECT s
+           FROM creativeworks:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
+                ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+           ACCUM CASE t.uri 
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t1.value
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/description" THEN s.@description += t1.value
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/dateCreated" THEN s.@dateCreated += t1.value
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/dateModified" THEN s.@dateModified += t1.value
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/about" THEN s.@about += t1.uri
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/category" THEN s.@category += t1.uri
+           WHEN "http://www.bbc.co.uk/ontologies/bbc/primaryContentOf" THEN s.@primaryContentOf += t1.uri
+           END;
+  
+  # find the webDocumenType of the primarycontent 
+  webDocumenType = SELECT t1
+                   FROM result:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
+                        (hasInstanceObject>:e1) - ClassInstance:t1 - (hasObjectPropertyInstance>:e2) - 
+                        ObjectPropertyInstance:t2 - (hasInstanceObject>:e3) - ClassInstance:t3
+                   WHERE t.uri == "http://www.bbc.co.uk/ontologies/bbc/primaryContentOf" AND
+                         t2.uri == "http://www.bbc.co.uk/ontologies/bbc/webDocumentType"
+                   ACCUM t1.@webDocumentType += t3.uri;
+  
+  # full text search the title contains "on" and the description contains "automatically"
+  result = SELECT s
+           FROM result:s
+           WHERE instr(s.@title, "on") != -1 OR instr(s.@description, "automatically") != -1
+           LIMIT 1000;
+  
+  PRINT result;
+  PRINT webDocumenType[webDocumenType.@webDocumentType];
+}

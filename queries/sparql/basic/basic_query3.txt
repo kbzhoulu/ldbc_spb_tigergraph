@@ -1,0 +1,38 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+Select *
+where {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+    {?creativework ?p1 ?o1 .}
+    union
+    {?s ?p ?creativework .}
+{
+SELECT ?creativework
+WHERE {
+ {
+ SELECT DISTINCT ?creativework
+ {
+ ?creativework cwork:dateCreated ?created .
+ ?creativework cwork:tag <http://dbpedia.org/resource/Margherita_Granbassi>   .
+ {
+ { ?creativework cwork:primaryFormat cwork:TextualFormat . }
+ UNION
+ { ?creativework cwork:primaryFormat cwork:InteractiveFormat . }
+ UNION
+ { ?creativework cwork:primaryFormat cwork:PictureGalleryFormat . }
+ }
+ # formats
+ {
+ { ?creativework a cwork:NewsItem . }
+ UNION
+ { ?creativework a cwork:BlogPost . }
+ }
+ OPTIONAL { ?creativework cwork:audience ?audience } .
+ FILTER (!BOUND(?audience) || ?audience = cwork:InternationalAudience) .
+ }
+ }
+}
+}
+}
+}
+ORDER BY DESC(?created)

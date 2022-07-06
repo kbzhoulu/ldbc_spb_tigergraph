@@ -1,0 +1,54 @@
+CREATE QUERY basic_query7_optimized() FOR GRAPH ldbc_test { 
+  /* Write query logic here */ 
+  /*
+  query name: basic_query7_optimized.txt
+  query description: 
+  Retrieve properties dateModif, title, category, liveCoverage, audience for all creative
+  works that are of a given type. The value of property dateModif of the retrieved
+  creative works should be within a certain time range. Return 100 results ordered in
+  ascending order by their dateModif.
+  
+  example: 
+  cwType: http://www.bbc.co.uk/ontologies/creativework/BlogPost
+  startDateTime: 2011-09-01T00:00:00.000
+  endDateTime: 2011-09-30T23:59:59.999
+  */
+  
+  MaxAccum<STRING> @dateModified;
+  MaxAccum<STRING> @title;
+  MaxAccum<STRING> @liveCoverage;
+  MaxAccum<STRING> @category;
+  MaxAccum<STRING> @audience;
+  
+  # find instances of a given type
+  BlogPost = SELECT s
+             FROM ClassInstance:s
+             WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/BlogPost";
+  
+  instances = SELECT s
+                  FROM BlogPost:t1 - (<hasInstanceObject) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # filter within time range
+  dateModified = SELECT s
+                 FROM instances:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - (hasValue>:e1) - ValueInstance:t1
+                 WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified" AND
+                       to_datetime(t1.value) >= to_datetime("2011-09-01T00:00:00.000") AND
+                       to_datetime(t1.value) < to_datetime("2011-09-30T23:59:59.999")
+                 ACCUM s.@dateModified += t1.value;
+
+  # collect info of properties
+  findProperty = SELECT s
+                 FROM dateModified:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
+                      ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+                 ACCUM CASE t.uri
+                 WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t1.value
+                 WHEN "http://www.bbc.co.uk/ontologies/creativework/liveCoverage" THEN s.@liveCoverage += t1.value
+                 WHEN "http://www.bbc.co.uk/ontologies/creativework/category" THEN s.@category += t1.uri
+                 WHEN "http://www.bbc.co.uk/ontologies/creativework/audience" THEN s.@audience += t1.uri
+                 END
+                 ORDER BY s.uri ASC
+                 LIMIT 100;
+  
+  PRINT findProperty;
+}

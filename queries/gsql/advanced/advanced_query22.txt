@@ -1,0 +1,80 @@
+CREATE QUERY advanced_query22_optimized(/* Parameters here */) FOR GRAPH ldbc_test { 
+  /* Write query logic here */ 
+  /*
+  query name:advanced_query22.txt
+  query description:
+  Retrieve various properties of creative works in several iterations by adding up more
+  filter conditions to previous ones. A faceted search query similar to query21, differs
+  in final iteration, where constraint is added on a specific month of the year
+  */
+  
+  MaxAccum<STRING> @title;
+  MaxAccum<STRING> @description;
+  MaxAccum<STRING> @dateCreated;
+  MaxAccum<INT> @year;
+  MaxAccum<INT> @day;
+  MaxAccum<INT> @month;
+  MaxAccum<STRING> @liveCoverage;
+  ListAccum<STRING> @tag;
+  MaxAccum<STRING> @category;
+  ListAccum<STRING> @primaryFormat;
+  ListAccum<STRING> @audience;
+  SumAccum<INT> @cw;
+  
+  # find all instance of CreativeWork
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
+  
+  creativeworks = SELECT s
+                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # filter the creativework that beling to specific category
+  company = SELECT s
+            FROM ClassInstance:s
+            WHERE s.uri == "http://www.bbc.co.uk/category/Event";
+  
+  category = SELECT s
+             FROM company:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - 
+                  (<hasObjectPropertyInstance:e1) - creativeworks:s
+             WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/category"
+             ACCUM s.@category += t1.uri;
+  
+  # collect info 
+  result = SELECT s
+           FROM category:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
+                ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+           ACCUM CASE t.uri 
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t1.value
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/description" THEN s.@description += t1.value
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/dateCreated" THEN s.@dateCreated += t1.value, 
+                s.@year += year(to_datetime(t1.value)),
+                s.@month += month(to_datetime(t1.value)),
+                s.@day += day(to_datetime(t1.value))
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/liveCoverage" THEN s.@liveCoverage += t1.value
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/primaryFormat" THEN s.@primaryFormat += t1.uri
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/audience" THEN s.@audience += t1.uri
+           WHEN "http://www.bbc.co.uk/ontologies/creativework/tag" THEN s.@tag += t1.uri
+           END;
+
+  # the title and description should contain given words
+  filteredResult = SELECT s
+                   FROM result:s 
+                   WHERE instr(s.@title, "us") != -1 OR 
+                         instr(s.@description, "browser") != -1;
+  
+  result = SELECT t1
+           FROM filteredResult:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
+                (hasInstanceObject>:e1) - ClassInstance:t1
+           WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/tag" 
+           ACCUM t1.@cw += 1, t1.@year += s.@year, t1.@month += s.@month;
+
+  SELECT s.@year AS years, s.@month AS months, s.uri, s.@cw AS cnt INTO T
+  FROM result:s
+  GROUP BY s.@year, s.@month, s.uri 
+  ORDER BY years ASC, months ASC, cnt ASC
+  LIMIT 500;
+  
+  PRINT T;
+}

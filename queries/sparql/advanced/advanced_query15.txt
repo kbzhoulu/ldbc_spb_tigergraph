@@ -1,0 +1,25 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?thing ?about ?mentions ?entityType ?category ?title
+WHERE
+{
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ ?thing rdf:type cwork:CreativeWork .
+ ?thing rdf:type ?class .
+ ?class rdfs:subClassOf cwork:CreativeWork .
+ ?thing cwork:about ?about .
+ ?thing cwork:mentions ?mentions .
+ ?mentions rdf:type ?entityType .
+ ?about rdf:type ?entityType .
+ ?thing cwork:category ?category .
+ ?thing cwork:title ?title .
+ FILTER (CONTAINS (?title, "policy") ) .
+ OPTIONAL {
+ ?thing cwork:audience cwork:InternationalAudience .
+ }
+}
+}
+ORDER BY ?about
+LIMIT 100

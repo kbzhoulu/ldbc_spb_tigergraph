@@ -1,0 +1,61 @@
+CREATE QUERY advanced_query24_optimized() FOR GRAPH ldbc_test { 
+  /* Write query logic here */ 
+  /*
+  
+  query description:
+  Retrieve a time-line of relatedness between two entities in database. Query explores
+  correlations of entities tagged together in creative works i.e. creates a history of
+  interactions. Additional constraint of time interval of 6 months limits the result. An
+  analytical query.
+  
+  example: 
+  startDateTime: 2011-05-22T02:56:17Z
+  endDateTime: 2011-11-22T02:56:17Z
+  */
+  TYPEDEF TUPLE <INT years, INT months, INT days> yearmonthday;
+  
+  MaxAccum<STRING> @dateCreated;
+  MaxAccum<INT> @year;
+  MaxAccum<INT> @month;
+  MaxAccum<INT> @day;
+  MapAccum<yearmonthday, INT> @@output;
+  
+  # find all instances of CreativeWork
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
+  
+  creativeworks = SELECT s
+                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # find the creativeworks are about two specific topics
+  topic = SELECT s
+          FROM ClassInstance:s
+          WHERE s.uri == "http://dbpedia.org/resource/George_Stepney" OR
+                s.uri == "http://dbpedia.org/resource/Umberto_Scotti";
+  
+  about = SELECT s
+          FROM topic:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - 
+               (<hasObjectPropertyInstance:e1) - creativeworks:s
+          WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about";
+
+  # find the dateTime of the creativework
+  dateCreated = SELECT s
+                FROM about:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
+                     (hasValue>:e1) - ValueInstance:t1
+                WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateCreated"
+                ACCUM s.@dateCreated += t1.value, 
+                      s.@year = year(to_datetime(t1.value)),
+                      s.@month = month(to_datetime(t1.value)), 
+                      s.@day = day(to_datetime(t1.value));
+  
+  result = SELECT s
+           FROM dateCreated:s 
+           WHERE to_datetime(s.@dateCreated) > to_datetime("2011-05-22T02:56:17Z") AND
+                 to_datetime(s.@dateCreated) < to_datetime("2011-11-22T02:56:17Z") 
+           ACCUM @@output += (yearmonthday(s.@year, s.@month, s.@day) -> 1)
+           ORDER BY s.@year, s.@month, s.@day;
+  
+  PRINT @@output;
+}

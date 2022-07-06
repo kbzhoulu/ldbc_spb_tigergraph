@@ -1,0 +1,18 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+PREFIX sport: <http://www.bbc.co.uk/ontologies/sport/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+
+SELECT ?about ((COUNT(*)) AS ?count)
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ ?creativeWork a cwork:CreativeWork .
+ ?creativeWork cwork:about ?about .
+ ?creativeWork cwork:category ?category .
+ ?about a dbo:Event .
+ FILTER((?category = <http://www.bbc.co.uk/category/Events>) || (?category =
+<http://www.bbc.co.uk/category/Company>)) .
+}
+}
+GROUP BY ?about
+ORDER BY DESC(?count)
+LIMIT 1000

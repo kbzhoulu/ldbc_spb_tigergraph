@@ -1,0 +1,15 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT ((MAX(?cnt)) AS ?mxc)
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ {
+ SELECT ?cw ((COUNT(*)) AS ?cnt)
+ WHERE {
+ ?creativeWork a cwork:CreativeWork ;
+ cwork:mentions ?thing .
+ }
+ GROUP BY ?cw
+ }
+}
+}

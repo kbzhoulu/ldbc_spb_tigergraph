@@ -1,0 +1,23 @@
+PREFIX ot: <http://www.ontotext.com/>
+PREFIX geo-ont: <http://www.geonames.org/ontology#>
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT ?cw ?title ?dateModified
+WHERE
+{
+ SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ ?location geo-ont:parentFeature ?province .
+ ?province geo-ont:featureCode geo-ont:A.ADM1 .
+ {
+ ?location geo-ont:parentFeature ?province .
+ } UNION {
+ BIND(?province as ?location) .
+ }
+ ?cw a cwork:CreativeWork ;
+ cwork:tag ?location ;
+ cwork:title ?title ;
+ cwork:dateModified ?dateModified .
+ FILTER(?dateModified >= "2011-10-29T00:00:00.000"^^<http://www.w3.org/2001/XMLSchema#dateTime> && ?dateModified < "2011-10-30T23:59:59.999"^^<http://www.w3.org/2001/XMLSchema#dateTime>) .
+ }
+}
+LIMIT 100

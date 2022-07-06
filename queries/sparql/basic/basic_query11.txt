@@ -1,0 +1,24 @@
+PREFIX ot: <http://www.ontotext.com/>
+PREFIX core: <http://www.bbc.co.uk/ontologies/coreconcepts/>
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+PREFIX bbc: <http://www.bbc.co.uk/ontologies/bbc/>
+
+SELECT DISTINCT ?cw ?title ?description ?dateModified ?primaryContent
+WHERE
+{
+ {
+ <http://www.bbc.co.uk/things/1#id> ?p ?e .
+ }
+ UNION
+ {
+ ?e ?p <http://www.bbc.co.uk/things/1#id> .
+ }
+ ?e a core:Thing .
+ ?cw cwork:tag ?e ;
+ cwork:title ?title ;
+ cwork:description ?description ;
+ cwork:dateModified ?dateModified ;
+ bbc:primaryContentOf ?primaryContent .
+}
+ORDER BY DESC(?dateModified)
+LIMIT 100

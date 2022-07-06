@@ -1,0 +1,38 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT ?other ?dt ((?cnt_2 * 2 + ?cnt_1 + ?cnt_0_5 * 0.5) AS ?score)
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ {
+ SELECT ((COUNT(*)) AS ?cnt_2)
+ WHERE {
+ ?other cwork:about ?oa .
+ <http://www.bbc.co.uk/things/23#id> cwork:about ?oa .
+ }
+ } .
+ {
+ SELECT ((COUNT(*)) AS ?cnt_1)
+ WHERE {
+ ?other cwork:mentions ?oa .
+ <http://www.bbc.co.uk/things/23#id> cwork:about ?oa .
+ }
+ } .
+ {
+ SELECT ((COUNT(*)) AS ?cnt_0_5)
+ WHERE {
+ ?other cwork:mentions ?om .
+ <http://www.bbc.co.uk/things/23#id> cwork:mentions ?om .
+ }
+ } .
+ {
+ SELECT DISTINCT ?other ?dt
+ WHERE {
+ <http://www.bbc.co.uk/things/23#id> cwork:tag ?tag .
+ ?other cwork:tag ?tag .
+ ?other cwork:dateModified ?dt .
+ }
+ }
+}
+}
+ORDER BY DESC(?score) DESC(?dt)
+LIMIT 10

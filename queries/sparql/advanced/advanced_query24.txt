@@ -1,0 +1,19 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+
+SELECT DISTINCT ?year ?month ?day ((COUNT(*)) AS ?cwsPerDay) 
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ ?cw a cwork:CreativeWork .
+ #?cw cwork:about <http://dbpedia.org/resource/Anders_Henriksson_(poker_player)> .
+ ?cw cwork:about <http://dbpedia.org/resource/George_Stepney> .
+ ?cw cwork:about <http://dbpedia.org/resource/Umberto_Scotti> .
+ ?cw cwork:dateCreated ?dateCreated .
+ BIND (day(?dateCreated) AS ?day) .
+ BIND (month(?dateCreated) AS ?month) .
+ BIND (year(?dateCreated) AS ?year) .
+ FILTER (?dateCreated >= "2011-05-22T02:56:17Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> &&
+?dateCreated < "2011-11-22T02:56:17Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>) .
+}
+}
+GROUP BY ?year ?month ?day
+ORDER BY ?year ?month ?day

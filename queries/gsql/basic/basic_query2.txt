@@ -1,0 +1,51 @@
+CREATE QUERY basic_query2_optimized() FOR GRAPH ldbc_test { 
+  /* Write query logic here */ 
+  /*
+  query name: basic_query2.txt
+  query description: 
+  Retrieve details about a given resource that is an instance of class CreativeWork and
+  its subclasses, namely its title, dateCreated, dateModified the topic the resource is
+  about, its primaryContentOf and the webDocumentType thereof.
+  
+  example: http://www.bbc.co.uk/things/1#id
+  */
+  SetAccum<STRING> @rdfType;
+  MaxAccum<STRING> @title;
+  MaxAccum<STRING> @dateCreated;
+  MaxAccum<STRING> @dateModified;
+  SetAccum<STRING> @primaryContentOf;
+  SetAccum<STRING> @about;
+  SetAccum<STRING> @webDocumentType;
+  
+
+  # find the title, dateCreated, dateModified, topic, primaryContentOf and the webDocumentType  
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/things/1#id";
+  
+  detailsOfInstance = SELECT s
+                      FROM creativework:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
+                            ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+                      ACCUM CASE t.uri
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t1.value
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/dateCreated" THEN s.@dateCreated += t1.value
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/dateModified" THEN s.@dateModified += t1.value
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/about" THEN s.@about += t1.uri
+                      WHEN "http://www.bbc.co.uk/ontologies/bbc/primaryContentOf" THEN s.@primaryContentOf += t1.uri
+                      WHEN "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" THEN s.@rdfType += t1.uri
+                      END;
+  
+  # find the webDcoumenType of primaryContentOf the instance
+  webDcoumenType = SELECT t1
+                   FROM detailsOfInstance:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
+                        (hasInstanceObject>:e1) - ClassInstance:t1 - (hasObjectPropertyInstance>:e2) - 
+                        ObjectPropertyInstance:t2 - (hasInstanceObject>:e3) - ClassInstance:t3
+                   WHERE t.uri == "http://www.bbc.co.uk/ontologies/bbc/primaryContentOf" AND 
+                         t2.uri == "http://www.bbc.co.uk/ontologies/bbc/webDocumentType"
+                   ACCUM t1.@webDocumentType += t3.uri;
+  
+  PRINT detailsOfInstance[detailsOfInstance.@rdfType, detailsOfInstance.@title, detailsOfInstance.@dateCreated, 
+        detailsOfInstance.@dateModified, detailsOfInstance.@about, detailsOfInstance.@primaryContentOf];
+  PRINT webDcoumenType[webDcoumenType.@webDocumentType];
+  
+}

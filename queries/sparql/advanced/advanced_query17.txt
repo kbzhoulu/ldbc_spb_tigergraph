@@ -1,0 +1,24 @@
+PREFIX cwork: <http://www.bbc.co.uk/ontologies/creativework/>
+PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT DISTINCT ?cwork ?geonamesId ?lat ?long ?dateModified 
+WHERE {
+SERVICE <http://localhost:7200/repositories/ldbc-spb> {
+ ?cwork a cwork:CreativeWork .
+ ?cwork cwork:mentions ?geonamesId .
+ ?cwork cwork:dateModified ?dateModified .
+ ?geonamesId geo:lat ?lat .
+ ?geonamesId geo:long ?long .
+ FILTER(CONTAINS(STR(?geonamesId), "geonames")) .
+ BIND(41.57930219264732 AS ?referenceLat) .
+ BIND(-1.0231757610303737 AS ?referenceLong) .
+ BIND(0.2232188735361287 AS ?deviation) .
+ FILTER(
+ (xsd:double(?lat) >= (?referenceLat - ?deviation)) &&
+ (xsd:double(?lat) <= (?referenceLat + ?deviation)) &&
+ (xsd:double(?long) >= (?referenceLong - ?deviation)) &&
+ (xsd:double(?long) <= (?referenceLong + ?deviation)) ) .
+}
+}
+LIMIT 1000

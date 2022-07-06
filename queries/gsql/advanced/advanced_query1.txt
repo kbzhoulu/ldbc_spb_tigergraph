@@ -1,0 +1,121 @@
+CREATE QUERY advanced_query1_optimized() FOR GRAPH ldbc_test { 
+  /* Write query logic here */ 
+  /*
+  query name: advanced_query1_optimized.txt
+  query description: 
+  Retrieve the 10 most recent creative works, that are about or mention different topics.
+  For each creative work a graph is returned that comprises of the work’s title,
+  shortTitle, dateCreated, dateModified, description, primaryFormat and
+  primaryContentOf properties; if the creative work has a thumbnail, then return its
+  thumbnailAltText and thumbnailType. Also retrieve existing properties of the topics
+  that the creative work is about or mentions: aboutLabel, aboutShortLabel,
+  aboutPreferred-Label, mentionsLabel, mentionsShortLabel and
+  mentionsPreferredLabel.
+  
+  example: 
+  about: http://dbpedia.org/resource/Markus_Zillner
+  */
+  
+  SetAccum<STRING> @rdftype;
+  MaxAccum<STRING> @dateModified;
+  MaxAccum<STRING> @title;
+  SetAccum<STRING> @about;
+  SetAccum<STRING> @mentions;
+  MaxAccum<STRING> @shortTitle;
+  MaxAccum<STRING> @dateCreated;
+  MaxAccum<STRING> @description;
+  SetAccum<STRING> @primaryFormat;
+  SetAccum<STRING> @primaryContentOf;
+  MaxAccum<STRING> @altText;
+  SetAccum<STRING> @thumbnail;
+  SetAccum<STRING> @thumbnailType;
+  SetAccum<STRING> @aboutLabel;
+  SetAccum<STRING> @aboutShortLabel;
+  SetAccum<STRING> @aboutPreferredLabel;
+  SetAccum<STRING> @mentionsLabel;
+  SetAccum<STRING> @mentionsShortLabel;
+  SetAccum<STRING> @mentionsPreferredLabel;
+  
+  # find the instances of CreativeWork 
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
+  
+  instancesOfCW = SELECT s
+                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # retrieve the topics that these creative works are about
+  topic = SELECT s
+          FROM ClassInstance:s
+          WHERE s.uri == "http://dbpedia.org/resource/Markus_Zillner";
+  
+  abouts = SELECT s
+          FROM topic:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - instancesOfCW:s
+          WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about";
+  
+  # retrieve 10 most recent creative works by sorting the result in descending order 
+  dateModified = SELECT s
+                 FROM abouts:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - (hasValue>:e1) - ValueInstance:t1
+                 WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified" 
+                 ACCUM s.@dateModified += t1.value
+                 ORDER BY s.@dateModified DESC
+                 LIMIT 10;
+  
+  # for each returned creative work, retrieve its title, shortTitle, dateCreated, dateModified, description, primaryFormat, primaryContentOf
+  # dataproperty title, shortTitle, dateCreated, dateModified, description
+  creativeWorksInfo = SELECT s
+                      FROM dateModified:s - ((hasDatatypePropertyInstance>|hasObjectPropertyInstance>):e) - (DatatypePropertyInstance|ObjectPropertyInstance):t -
+                           ((hasValue>|hasInstanceObject>):e2) - (ClassInstance|ValueInstance):t2
+                      ACCUM CASE t.uri 
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t2.value
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/shortTitle" THEN s.@shortTitle += t2.value
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/dateModified" THEN s.@dateModified += t2.value
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/description" THEN s.@description += t2.value
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/primaryFormat" THEN s.@primaryFormat += t2.uri
+                      WHEN "http://www.bbc.co.uk/ontologies/bbc/primaryContentOf" THEN s.@primaryContentOf += t2.uri
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/thumbnail" THEN s.@thumbnail += t2.uri
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/about" THEN s.@about += t2.uri
+                      WHEN "http://www.bbc.co.uk/ontologies/creativework/mentions" THEN s.@mentions += t2.uri
+                      WHEN "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" THEN s.@rdftype += t2.uri
+                      END; 
+  
+  # if the creative work has thumbnail, return its thumbnailAltText and thumbnailType 
+  thumbnail = SELECT t1
+              FROM creativeWorksInfo:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
+                    (hasInstanceObject>:e1) - ClassInstance:t1 - ((hasDatatypePropertyInstance>|hasObjectPropertyInstance>):e2) - 
+                    (DatatypePropertyInstance|ObjectPropertyInstance):t2 - ((hasValue>|hasInstanceObject>):e3) - (ValueInstance|ClassInstance):t3
+              WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/thumbnail"
+              ACCUM CASE 
+              WHEN t2.uri == "http://www.bbc.co.uk/ontologies/creativework/altText" THEN t1.@altText += t3.uri
+              WHEN t2.uri == "http://www.bbc.co.uk/ontologies/creativework/thumbnailType" THEN t1.@thumbnailType += t3.uri
+              WHEN t2.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" THEN t1.@rdftype += t3.uri
+              END;
+
+  # retrieve the infomation of the topics that the creative work is about or mentions: aboutLabel, aboutShortLabel, 
+  # aboutPreferredLabel, mentionsLabel, mentionsShortLabel, and mentionsPreferredLabel
+  aboutInfo = SELECT s
+              FROM dateModified:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
+                   (hasInstanceObject>:e1) - ClassInstance:t1 - (hasDatatypePropertyInstance>:e2) - 
+                   DatatypePropertyInstance:t2 - (hasValue>:e3) - ValueInstance:t3
+              WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about"
+              ACCUM CASE t2.uri 
+              WHEN "http://www.w3.org/2000/01/rdf-schema#label" THEN s.@aboutLabel += t3.value
+              WHEN "http://www.bbc.co.uk/ontologies/bbc/shortLabel" THEN s.@aboutShortLabel += t3.value
+              WHEN "http://www.ldbcouncil.org/spb#prefLabel" THEN s.@aboutPreferredLabel += t3.value
+              END;
+  
+  mentionsInfo = SELECT s
+                 FROM dateModified:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
+                      (hasInstanceObject>:e1) - ClassInstance:t1 - (hasDatatypePropertyInstance>:e2) - 
+                      DatatypePropertyInstance:t2 - (hasValue>:e3) - ValueInstance:t3
+                 WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions"
+                 ACCUM CASE t2.uri 
+                 WHEN "http://www.w3.org/2000/01/rdf-schema#label" THEN s.@mentionsLabel += t3.value
+                 WHEN "http://www.bbc.co.uk/ontologies/bbc/shortLabel" THEN s.@mentionsShortLabel += t3.value
+                 WHEN "http://www.ldbcouncil.org/spb#prefLabel" THEN s.@mentionsPreferredLabel += t3.value
+                 END;
+  
+  PRINT creativeWorksInfo;
+  PRINT thumbnail;
+}
