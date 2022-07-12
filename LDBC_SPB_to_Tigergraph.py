@@ -152,9 +152,10 @@ log("saved successfully")
 log("connecting to graph solution.")
 
 # Connection parameters
-hostname = "https://simulate-rdf.i.tgcloud.io"
-username = "tigergraph"
-password = "tigergraph"
+# Configure to your solution
+hostname = "https://XXXXXXX.i.tgcloud.io"
+username = "XXXXXXXX"
+password = "XXXXXXXX"
 
 conn = tg.TigerGraphConnection(host=hostname, username=username, password=password)
 
@@ -236,7 +237,7 @@ log(results)
 
 
 #### Connect to the graph with apiToken
-graphname = "ldbc_test"
+graphname = "XXXXXXX"
 
 conn.graphname = graphname
 secret = conn.createSecret()
