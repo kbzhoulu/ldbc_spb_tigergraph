@@ -20,6 +20,7 @@ ex:Tigergraph rdf:type ex:Company .
 ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 ```
 | Mapping Rules | RDF Graphs | TigerGraph | Examples |
+|:---:|:---:|:---:|:---:|
 | Rule 1 | Subject | ClassInstance | ex:Tigergraph |
 | Rule 2 | Predicate (Object Property) | ObjectPropertyInstance | rdf:type |
 | Rule 3 | Predicate (Datatype Property) | DatatypePropertyInstance | ex:hasName |
@@ -28,7 +29,7 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 | Rule 6 | Literal Value | ValueInstance's attribute: value | Tigergraph |
 | Rule 7 | Datatype | ValueInstance's attribute: datatype | xsd:string |
 
-## Schema Diagram
+## Example Graphs in Diagram
 
 ![Schema Diagram in RDF graphs](./rdfgraph.jpg)
 
@@ -37,6 +38,8 @@ Example triples in RDF Graph
 ![Schema Diagram in TigerGraph](./tigergraph.png)
 
 Example triples in Tigergraph
+
+## SPARQL tO GSQL Translation
 
 ## Contributers
 ```
