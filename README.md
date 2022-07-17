@@ -19,7 +19,6 @@ Mapping Rules and examples from RDF graphs to Tigergraph
 ex:Tigergraph rdf:type ex:Company .
 ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 ```
-
 | Mapping Rules | RDF Graphs | TigerGraph | Examples |
 | Rule 1 | Subject | ClassInstance | ex:Tigergraph |
 | Rule 2 | Predicate (Object Property) | ObjectPropertyInstance | rdf:type |
