@@ -32,10 +32,12 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 ## Schema Diagram
 
 ![Schema Diagram in RDF graphs](./rdfgraph.jpg)
+
 Example triples in RDF Graph
 
 ![Schema Diagram in TigerGraph](./tigergraph.png)
-Exampel triples in Tigergraph
+
+Example triples in Tigergraph
 
 ## Contributers
 ```
