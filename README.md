@@ -1,4 +1,4 @@
-# Towards Migrating RDF Knolwedge Graphs to Proerty Graphs in TigerGraph
+# Towards Migrating RDF Knolwedge Graphs to Property Graphs in TigerGraph
 
 ## Reproducibility
 Run the ipynb file in Jupyter Notebook or run the python code directly 
@@ -40,6 +40,23 @@ Example triples in RDF Graph
 Example triples in Tigergraph
 
 ## SPARQL tO GSQL Translation
+Example query:
+
+![SPARQL](./sparql.png)
+
+SPARQL query
+
+![SPARQL results](./sparql_result.png)
+
+Results returned by running SPARQL query
+
+![GSQL](./gsql.png)
+
+GSQL query
+
+![GSQL results](./gsql_result.png)
+
+Results returned by running GSQL query
 
 ## Contributers
 ```
