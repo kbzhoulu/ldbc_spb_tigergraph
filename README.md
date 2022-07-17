@@ -4,21 +4,21 @@
 Run the ipynb file in Jupyter Notebook or run the python code directly 
 
 ## Data Sources
-[LDBC Semantic Publishing Benchmark] (https://ldbcouncil.org/benchmarks/spb/)
+[LDBC Semantic Publishing Benchmark](https://ldbcouncil.org/benchmarks/spb/)
 
 ## Dependencies
 rdflib, pytigergraph, pandas, hashlib, csv
 
 ## Graph Model Mapping
 Mapping Rules and examples from RDF graphs to Tigergraph
-
+```
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 @prefix ex: <http://example.com/> 
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>
 
 ex:Tigergraph rdf:type ex:Company .
 ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
-
+```
 | Mapping Rules | RDF Graphs | TigerGraph | Examples |
 | Rule 1 | Subject | ClassInstance | ex:Tigergraph |
 | Rule 2 | Predicate (Object Property) | ObjectPropertyInstance | rdf:type |
@@ -30,13 +30,17 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 
 ## Schema Diagram
 
-![Schema Diagram in RDF graphs](./rdfgraph.png)
+![Schema Diagram in RDF graphs](./rdfgraph.jpg)
 
 ![Schema Diagram in TigerGraph](./tigergraph.png)
 
 ## Contributers
+```
 Lu Zhou
 Research Engineer
-Product and Innovation
-TigerGraph, Inc.
 
+Jay Yu 
+VP of Product and Innovation
+
+TigerGraph, Inc.
+```
