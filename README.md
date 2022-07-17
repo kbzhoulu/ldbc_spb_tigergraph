@@ -19,6 +19,7 @@ Mapping Rules and examples from RDF graphs to Tigergraph
 ex:Tigergraph rdf:type ex:Company .
 ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 ```
+
 | Mapping Rules | RDF Graphs | TigerGraph | Examples |
 | Rule 1 | Subject | ClassInstance | ex:Tigergraph |
 | Rule 2 | Predicate (Object Property) | ObjectPropertyInstance | rdf:type |
@@ -31,16 +32,16 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 ## Schema Diagram
 
 ![Schema Diagram in RDF graphs](./rdfgraph.jpg)
+Example triples in RDF Graph
 
 ![Schema Diagram in TigerGraph](./tigergraph.png)
+Exampel triples in Tigergraph
 
 ## Contributers
 ```
 Lu Zhou
 Research Engineer
-
 Jay Yu 
 VP of Product and Innovation
-
 TigerGraph, Inc.
 ```
