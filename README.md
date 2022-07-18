@@ -3,13 +3,10 @@ Both RDF and property graph models provide ways to explore and graphically depic
 
 ## Reproducibility
 * LDBC SPB benchmark generator instruction
-```
-Please see more details in [SPB sepecification](https://ldbcouncil.org/benchmarks/spb/ldbc-spb-v2.0-specification.pdf)
-```
+Please see more [details in SPB sepecification](https://ldbcouncil.org/benchmarks/spb/ldbc-spb-v2.0-specification.pdf)
+
 * Create Schema, Map data, Load CSV file, Run queries, Evaluate performance
-```
 Run the ipynb file in Jupyter Notebook or run the python code directly 
-```
 
 ## Data Sources
 [LDBC Semantic Publishing Benchmark](https://ldbcouncil.org/benchmarks/spb/)
@@ -39,10 +36,10 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 
 ## Example Graphs in Diagram
 
-![Schema Diagram in RDF graphs](./rdfgraph.png)
+![Schema Diagram in RDF graphs](./screenshots/rdfgraph.png)
 *Figure 1. Example triples in RDF Graph*
 
-![Schema Diagram in TigerGraph](./tigergraph.png)
+![Schema Diagram in TigerGraph](./screenshots/tigergraph.png)
 *Figure 2. Example triples in Tigergraph*
 
 ## SPARQL tO GSQL Translation
@@ -52,16 +49,16 @@ works that are of a given type. The value of property dateModified of the retrie
 creative works should be within a certain time range. Return 5 results ordered in
 ascending order by their dateModified.
 
-![SPARQL](./sparql.png)
+![SPARQL](./screenshots/sparql.png)
 *Figure 3. SPARQL query*
 
-![SPARQL results](./sparql_result.png)
+![SPARQL results](./screenshots/sparql_result.png)
 *Figure 4. Results returned by running SPARQL query*
 
-![GSQL](./gsql.png)
+![GSQL](./screenshots/gsql.png)
 *Figure 5. GSQL query*
 
-![GSQL results](./gsql_result.png)
+![GSQL results](./screenshots/gsql_result.png)
 *Figure 6. Results returned by running GSQL query*
 
 ## Contributers
