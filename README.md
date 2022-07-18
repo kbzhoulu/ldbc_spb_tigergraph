@@ -3,9 +3,11 @@ Both RDF and property graph models provide ways to explore and graphically depic
 
 ## Reproducibility
 * LDBC SPB benchmark generator instruction
+
 Please see more [details in SPB sepecification](https://ldbcouncil.org/benchmarks/spb/ldbc-spb-v2.0-specification.pdf)
 
 * Create Schema, Map data, Load CSV file, Run queries, Evaluate performance
+
 Run the ipynb file in Jupyter Notebook or run the python code directly 
 
 ## Data Sources
@@ -44,10 +46,12 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 
 ## SPARQL tO GSQL Translation
 Example query:
-Retrieve properties dateModified, title, category, liveCoverage, audience for all creative
-works that are of a given type. The value of property dateModified of the retrieved
-creative works should be within a certain time range. Return 5 results ordered in
-ascending order by their dateModified.
+```
+Retrieve properties dateModified, title, category, liveCoverage, audience for all 
+creative works that are of a given type. The value of property dateModified of the 
+retrieved creative works should be within a certain time range. Return 5 results 
+ordered in ascending order by their dateModified.
+```
 
 ![SPARQL](./screenshots/sparql.png)
 *Figure 3. SPARQL query*
