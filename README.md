@@ -4,11 +4,11 @@ Both RDF and property graph models provide ways to explore and graphically depic
 ## Reproducibility
 * LDBC SPB benchmark generator instruction
 
-Please see more [details in SPB sepecification](https://ldbcouncil.org/benchmarks/spb/ldbc-spb-v2.0-specification.pdf)
+	Please see details in [SPB sepecification](https://ldbcouncil.org/benchmarks/spb/ldbc-spb-v2.0-specification.pdf)
 
 * Create Schema, Map data, Load CSV file, Run queries, Evaluate performance
 
-Run the ipynb file in Jupyter Notebook or run the python code directly 
+	Run the ipynb file in Jupyter Notebook or run the python code directly 
 
 ## Data Sources
 [LDBC Semantic Publishing Benchmark](https://ldbcouncil.org/benchmarks/spb/)
