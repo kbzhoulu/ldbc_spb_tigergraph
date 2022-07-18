@@ -39,7 +39,7 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 ## Example Graphs in Diagram
 
 ![Schema Diagram in RDF graphs](./screenshots/rdfgraph.png)
-		*Figure 1. Example triples in RDF Graph*
+*Figure 1. Example triples in RDF Graph*
 
 ![Schema Diagram in TigerGraph](./screenshots/tigergraph.png)
 *Figure 2. Example triples in Tigergraph*
