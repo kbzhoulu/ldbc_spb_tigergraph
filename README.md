@@ -44,7 +44,7 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 ![Schema Diagram in TigerGraph](./screenshots/tigergraph.png)
 *Figure 2. Example triples in Tigergraph*
 
-## SPARQL tO GSQL Translation
+## SPARQL to GSQL Translation
 Example query:
 ```
 Retrieve properties dateModified, title, category, liveCoverage, audience for all 
