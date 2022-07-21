@@ -23,7 +23,7 @@ Mapping Rules and examples from RDF graphs to Tigergraph
 @prefix ex: <http://example.com/> 
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>
 
-ex:Tigergraph rdf:type ex:Company .
+ex:Tigergraph rdf:type ex:Private Company .
 ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 ```
 | Mapping Rules | RDF Graphs | TigerGraph | Examples |
@@ -31,7 +31,7 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 | Rule 1 | Subject | ClassInstance | ex:Tigergraph |
 | Rule 2 | Predicate (Object Property) | ObjectPropertyInstance | rdf:type |
 | Rule 3 | Predicate (Datatype Property) | DatatypePropertyInstance | ex:hasName |
-| Rule 4 | Object (!isLiteral) | ClassInstance | ex:Company |
+| Rule 4 | Object (!isLiteral) | ClassInstance | ex:Private Company |
 | Rule 5 | Object (isLiteral) | ValueInstance | "Tigergraph"^^xsd:string |
 | Rule 6 | Literal Value | ValueInstance's attribute: value | Tigergraph |
 | Rule 7 | Datatype | ValueInstance's attribute: datatype | xsd:string |
