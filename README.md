@@ -5,6 +5,7 @@ Both RDF and property graph models provide ways to explore and graphically depic
 * LDBC SPB benchmark generator instruction
 
 	Please see details in [SPB sepecification](https://ldbcouncil.org/benchmarks/spb/ldbc-spb-v2.0-specification.pdf)
+	We upload the generated RDF graph in turtle format which can be directly used. 
 
 * Create Schema, Map data, Load CSV file, Run queries, Evaluate performance
 
@@ -43,6 +44,7 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 *Figure 1. Example triples in RDF Graph*
 
 ![Schema Diagram in TigerGraph](./screenshots/tigergraph.png)
+
 *Figure 2. Example triples in Tigergraph*
 
 ## SPARQL to GSQL Translation
@@ -54,16 +56,30 @@ retrieved creative works should be within a certain time range. Return 5 results
 ordered in ascending order by their dateModified.
 ```
 
+| Mapping Rules | SPAQRL | GSQL | SPAQRL Examples | GSQL Examples |
+|:---:|:---:|:---:|:---:|:---:|
+| Rule 1 | SELECT | SELECT | ```SELECT ?cwork``` | ```SELECT s.uri as a``` |
+| Rule 2 | WHERE | FROM & WHERE | ```?cwork cwork:dateModifed ?dateModified```  | ```FROM ClassInstance:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - (hasValue>:e1) - ValueInstance:t1 WHERE t.uri == "cwork:dateModifed"``` |
+| Rule 3 | FILTER | WHERE | ```FILTER (?dateModified >= "2011-09-01T00:00:00.000"^^xsd:dateTime)``` | ```WHERE to_datetime(t1.value) >= to_datetime("2011-09-01T00:00:00.000")``` |
+| Rule 4 | OPTIONAL | ACCUM CASE | ```OPTIONAL {?cwork cwork:title ?title .}``` | ```ACCUM CASE t.uri WHEN "cwork:title" THEN s.@title += t1.value``` |
+| Rule 5 | GROUP BY| GROUP BY | ```GROUP BY ?cwork``` | ```GROUP BY s.uri``` |
+| Rule 6 | ORDER BY | ORDER BY| ```ORDER BY ?dataModified ?cwork``` | ```ORDER BY b ASC, a ASC``` |
+| Rule 7 | LIMIT | LIMIT | ```LIMIT 5``` | ```LIMIT 5``` |
+
 ![SPARQL](./screenshots/sparql.png)
+
 *Figure 3. SPARQL query*
 
 ![SPARQL results](./screenshots/sparql_result.png)
+
 *Figure 4. Results returned by running SPARQL query*
 
 ![GSQL](./screenshots/gsql.png)
+
 *Figure 5. GSQL query*
 
 ![GSQL results](./screenshots/gsql_result.png)
+
 *Figure 6. Results returned by running GSQL query*
 
 ## Contributers
