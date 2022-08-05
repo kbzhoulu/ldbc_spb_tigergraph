@@ -59,7 +59,7 @@ ordered in ascending order by their dateModified.
 ```
 
 | Mapping Rules | SPAQRL | GSQL | SPAQRL Examples | GSQL Examples |
-|:---:|:---:|:---:|:---:|:---:|
+|:---:|:---:|:---:| --- | --- |
 | Rule 1 | SELECT | SELECT | ```SELECT ?cwork``` | ```SELECT s.uri as cwork INTO T``` |
 | Rule 2 | WHERE | FROM & WHERE | ```WHERE {?cwork cwork:dateModified ?dateModified. }``` | ```FROM ClassInstance:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - (hasValueInstance>:e1) - ValueInstance:t1 WHERE t.uri == "cwork:dateModified"``` |
 | Rule 3 | FILTER | WHERE | ```FILTER (?dateModified >= "2011-09-01T00:00:00.000"^^xsd:dateTime)``` | ```WHERE to_datetime(t1.value) >= to_datetime("2011-09-01T00:00:00.000")``` |
