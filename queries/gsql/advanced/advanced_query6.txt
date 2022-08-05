@@ -19,7 +19,7 @@ CREATE QUERY advanced_query6_optimized(/* Parameters here */) FOR GRAPH ldbc_tes
                           WHERE s.uri ==  "http://www.bbc.co.uk/ontologies/creativework/InternationalAudience";
   
   audience = SELECT s
-             FROM internationalaudience:t - (<hasInstanceObject:e) - ObjectPropertyInstance:t1 -
+             FROM internationalaudience:t - (<hasObjectInstance:e) - ObjectPropertyInstance:t1 -
                   (<hasObjectPropertyInstance:e1) - ClassInstance:s
              WHERE t1.uri == "http://www.bbc.co.uk/ontologies/creativework/audience"
              ACCUM s.@audience += t.uri;
@@ -30,7 +30,7 @@ CREATE QUERY advanced_query6_optimized(/* Parameters here */) FOR GRAPH ldbc_tes
                      WHERE s.value == "false";
   
   coverage = SELECT s
-             FROM negativeCoverage:t - (<hasValue:e) - DatatypePropertyInstance:t1 - 
+             FROM negativeCoverage:t - (<hasValueInstance:e) - DatatypePropertyInstance:t1 - 
                   (<hasDatatypePropertyInstance:e1) - audience:s
              WHERE t1.uri == "http://www.bbc.co.uk/ontologies/creativework/liveCoverage"
              ACCUM s.@coverage += t.value;
@@ -38,8 +38,8 @@ CREATE QUERY advanced_query6_optimized(/* Parameters here */) FOR GRAPH ldbc_tes
   # collect the topics that the creativeworks are about and the type of the topics
   topicTypes = SELECT t3
                FROM coverage:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
-                    (hasInstanceObject>:e1) - ClassInstance:t1 - (hasObjectPropertyInstance>:e2) - 
-                    ObjectPropertyInstance:t2 - (hasInstanceObject>:e3) - ClassInstance:t3
+                    (hasObjectInstance>:e1) - ClassInstance:t1 - (hasObjectPropertyInstance>:e2) - 
+                    ObjectPropertyInstance:t2 - (hasObjectInstance>:e3) - ClassInstance:t3
                WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about" AND
                      t2.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
                ACCUM t3.@topic += s.uri,

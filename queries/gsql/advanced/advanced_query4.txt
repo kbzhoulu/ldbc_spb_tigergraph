@@ -26,13 +26,13 @@ CREATE QUERY advanced_query4_optimized() FOR GRAPH ldbc_test {
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   subClassOfCW = SELECT s
-                 FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t -
+                 FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
                       (<hasObjectPropertyInstance:e1) - ClassInstance:s
                  WHERE t.uri == "http://www.w3.org/2000/01/rdf-schema#subClassOf";
   
   # find all instances has rdf type of subClassOf creativeWork
   findType = SELECT s
-             FROM  subClassOfCW:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t -
+             FROM  subClassOfCW:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
                    (<hasObjectPropertyInstance:e1) - ClassInstance:s
              WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
              ACCUM s.@type += t1.uri;
@@ -40,7 +40,7 @@ CREATE QUERY advanced_query4_optimized() FOR GRAPH ldbc_test {
   # find all the dateModified
   findDateModified = SELECT s
                      FROM findType:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
-                          (hasValue>:e1) - ValueInstance:t1
+                          (hasValueInstance>:e1) - ValueInstance:t1
                      WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified" AND
                            to_datetime(t1.value) > to_datetime("2010-08-22T02:56:17Z") AND
                            to_datetime(t1.value) < to_datetime("2011-04-22T02:56:17Z") 

@@ -1,4 +1,4 @@
-CREATE QUERY advanced_query25_optimized(/* Parameters here */) FOR GRAPH ldbc_test { 
+ƒCREATE QUERY advanced_query25_optimized(/* Parameters here */) FOR GRAPH ldbc_test { 
   /* Write query logic here */ 
   /*
   query name: advanced_query25.txt
@@ -24,7 +24,7 @@ CREATE QUERY advanced_query25_optimized(/* Parameters here */) FOR GRAPH ldbc_te
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   creativeworks = SELECT s
-                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # find the creativeworks are about two specific topics
@@ -33,14 +33,14 @@ CREATE QUERY advanced_query25_optimized(/* Parameters here */) FOR GRAPH ldbc_te
           WHERE s.uri == "http://dbpedia.org/resource/Anders_Henriksson_(poker_player)";
   
   about = SELECT s
-          FROM topic:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - 
+          FROM topic:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - 
                (<hasObjectPropertyInstance:e1) - creativeworks:s
           WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about";
   
   # find the dateCreated of the creativework
   dateCreated = SELECT s
                 FROM about:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
-                     (hasValue>:e1) - ValueInstance:t1
+                     (hasValueInstance>:e1) - ValueInstance:t1
                 WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateCreated" 
                 ACCUM s.@dateCreated += t1.value, 
                       s.@year = year(to_datetime(t1.value)),
@@ -50,7 +50,7 @@ CREATE QUERY advanced_query25_optimized(/* Parameters here */) FOR GRAPH ldbc_te
   # find other topic these crativework are about
   otherabout = SELECT t1  
                FROM dateCreated:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
-                    (hasInstanceObject>:e1) - ClassInstance:t1
+                    (hasObjectInstance>:e1) - ClassInstance:t1
                WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about" AND
                      t1.uri != "http://dbpedia.org/resource/Anders_Henriksson_(poker_player)"
                ACCUM t1.@years += s.@year,

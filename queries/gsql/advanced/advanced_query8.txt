@@ -23,21 +23,21 @@ CREATE QUERY advanced_query8_optimized() FOR GRAPH ldbc_test {
                           WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/InternationalAudience";
   
   audience = SELECT s
-             FROM internationalAudience:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - 
+             FROM internationalAudience:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - 
                   (<hasObjectPropertyInstance:e1) - ClassInstance:s
              WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/audience";
   
   # collect the dateModified information of each creativework
   dateModified = SELECT s
                  FROM audience:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t -
-                      (hasValue>:e1) - ValueInstance:t1
+                      (hasValueInstance>:e1) - ValueInstance:t1
                  WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified"
                  ACCUM s.@dateModified += t1.value;
   
   # collect the topic that theses creativeworks are about and count the number of creativeworks of each topic
   topic = SELECT t1
           FROM dateModified:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
-               (hasInstanceObject>:e1) - ClassInstance:t1
+               (hasObjectInstance>:e1) - ClassInstance:t1
           WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about" AND
                 to_datetime(s.@dateModified) >= to_datetime("2011-10-30T17:33:56Z") AND
                 to_datetime(s.@dateModified) < to_datetime("2011-10-30T18:33:56Z")

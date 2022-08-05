@@ -1,4 +1,4 @@
-CREATE QUERY advanced_query10_optimized(/* Parameters here */) FOR GRAPH ldbc_test { 
+ƒCREATE QUERY advanced_query10_optimized(/* Parameters here */) FOR GRAPH ldbc_test { 
   /* Write query logic here */ 
   /*
   query name: advanced_query10.txt
@@ -21,13 +21,13 @@ CREATE QUERY advanced_query10_optimized(/* Parameters here */) FOR GRAPH ldbc_te
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   creativeWorks = SELECT s
-                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t -
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
                        (<hasObjectPropertyInstance:e1) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   mentions = SELECT s
              FROM creativeWorks:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
-                  (hasInstanceObject>:e1) - ClassInstance:t1
+                  (hasObjectInstance>:e1) - ClassInstance:t1
              WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions"
              ACCUM s.@mentions += 1;
   
@@ -39,7 +39,7 @@ CREATE QUERY advanced_query10_optimized(/* Parameters here */) FOR GRAPH ldbc_te
   # find the creativeworks that also have as many topics as the maxcount and find the dateCreated
   result = SELECT s
            FROM mentions:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
-                  (hasValue>:e1) - ValueInstance:t1
+                  (hasValueInstance>:e1) - ValueInstance:t1
            WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateCreated" AND
                  s.@mentions == @@max
            ACCUM s.@dateCreated += t1.value

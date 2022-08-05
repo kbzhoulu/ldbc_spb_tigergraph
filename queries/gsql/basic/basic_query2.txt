@@ -25,7 +25,7 @@ CREATE QUERY basic_query2_optimized() FOR GRAPH ldbc_test {
   
   detailsOfInstance = SELECT s
                       FROM creativework:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
-                            ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+                            ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
                       ACCUM CASE t.uri
                       WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t1.value
                       WHEN "http://www.bbc.co.uk/ontologies/creativework/dateCreated" THEN s.@dateCreated += t1.value
@@ -38,8 +38,8 @@ CREATE QUERY basic_query2_optimized() FOR GRAPH ldbc_test {
   # find the webDcoumenType of primaryContentOf the instance
   webDcoumenType = SELECT t1
                    FROM detailsOfInstance:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
-                        (hasInstanceObject>:e1) - ClassInstance:t1 - (hasObjectPropertyInstance>:e2) - 
-                        ObjectPropertyInstance:t2 - (hasInstanceObject>:e3) - ClassInstance:t3
+                        (hasObjectInstance>:e1) - ClassInstance:t1 - (hasObjectPropertyInstance>:e2) - 
+                        ObjectPropertyInstance:t2 - (hasObjectInstance>:e3) - ClassInstance:t3
                    WHERE t.uri == "http://www.bbc.co.uk/ontologies/bbc/primaryContentOf" AND 
                          t2.uri == "http://www.bbc.co.uk/ontologies/bbc/webDocumentType"
                    ACCUM t1.@webDocumentType += t3.uri;

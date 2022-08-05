@@ -37,7 +37,7 @@ CREATE QUERY basic_query4_optimized() FOR GRAPH ldbc_test {
           WHERE s.uri == "http://dbpedia.org/resource/Philip_Metcalfe"; 
   
   creativeworks = SELECT s
-                  FROM topic:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  FROM topic:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
                   WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/tag";
                  
   # narrow down the creativeworks with the specific formart
@@ -46,7 +46,7 @@ CREATE QUERY basic_query4_optimized() FOR GRAPH ldbc_test {
            WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/TextualFormat"; 
   
   formats = SELECT s
-            FROM format:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - creativeworks:s
+            FROM format:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - creativeworks:s
             WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/primaryFormat";
   
   # continue to narrow down the creativeworks should has a specific given type
@@ -55,13 +55,13 @@ CREATE QUERY basic_query4_optimized() FOR GRAPH ldbc_test {
              WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/BlogPost"; 
   
   cwtypes = SELECT s
-            FROM blogpost:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - formats:s
+            FROM blogpost:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - formats:s
             WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # retrieve all related nodes and order om descending of the creationDate
   results = SELECT s
             FROM cwtypes:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
-                  ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+                  ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
             ACCUM CASE t.uri
             WHEN "http://www.bbc.co.uk/ontologies/creativework/dateCreated" THEN s.@dateCreated += t1.value
             WHEN "http://www.bbc.co.uk/ontologies/creativework/altText" THEN s.@altText += t1.value

@@ -20,7 +20,7 @@ CREATE QUERY advanced_query19_optimized() FOR GRAPH ldbc_test {
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   creativeworks = SELECT s
-                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # filter the creativeworks by the specific audience type
@@ -29,14 +29,14 @@ CREATE QUERY advanced_query19_optimized() FOR GRAPH ldbc_test {
                           WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/InternationalAudience";
   
   filteredAudience = SELECT s
-                     FROM internationalAudience:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t -
+                     FROM internationalAudience:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
                           (<hasObjectPropertyInstance:e1) - creativeworks:s
                      WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/audience";
   
   # collect the dateModified of the creativeworks
   dateModified = SELECT s
                  FROM filteredAudience:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
-                      (hasValue>:e1) - ValueInstance:t1
+                      (hasValueInstance>:e1) - ValueInstance:t1
                  WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified"
                  ACCUM s.@dateModified += t1.value;
   
@@ -49,7 +49,7 @@ CREATE QUERY advanced_query19_optimized() FOR GRAPH ldbc_test {
   # find all the topics that creativeworks are about and count number of creativeworks of each topic
   topic = SELECT t1
           FROM timeRange:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
-               (hasInstanceObject>:e1) - ClassInstance:t1
+               (hasObjectInstance>:e1) - ClassInstance:t1
           WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about"
           ACCUM t1.@about += 1, t1.@dateModified += s.@dateModified;
   

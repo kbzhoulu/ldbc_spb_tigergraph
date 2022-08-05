@@ -36,6 +36,7 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 | Rule 5 | Object (isLiteral) | ValueInstance | "Tigergraph"^^xsd:string |
 | Rule 6 | Literal Value | ValueInstance's attribute: value | Tigergraph |
 | Rule 7 | Datatype | ValueInstance's attribute: datatype | xsd:string |
+| Rule 8 | Language Tag | ValueInstance's attribute: langTag | xsd:string |
 
 ## Example Graphs in Diagram
 
@@ -58,12 +59,12 @@ ordered in ascending order by their dateModified.
 
 | Mapping Rules | SPAQRL | GSQL | SPAQRL Examples | GSQL Examples |
 |:---:|:---:|:---:|:---:|:---:|
-| Rule 1 | SELECT | SELECT | ```SELECT ?cwork``` | ```SELECT s.uri as a``` |
-| Rule 2 | WHERE | FROM & WHERE | ```WHERE {?cwork cwork:dateModified ?dateModified. }```  | ```FROM ClassInstance:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - (hasValue>:e1) - ValueInstance:t1 WHERE t.uri == "cwork:dateModified"``` |
+| Rule 1 | SELECT | SELECT | ```SELECT ?cwork``` | ```SELECT s.uri as cwork INTO T``` |
+| Rule 2 | WHERE | FROM & WHERE | ```WHERE {?cwork cwork:dateModified ?dateModified. }``` | ```FROM ClassInstance:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - (hasValueInstance>:e1) - ValueInstance:t1 WHERE t.uri == "cwork:dateModified"``` |
 | Rule 3 | FILTER | WHERE | ```FILTER (?dateModified >= "2011-09-01T00:00:00.000"^^xsd:dateTime)``` | ```WHERE to_datetime(t1.value) >= to_datetime("2011-09-01T00:00:00.000")``` |
 | Rule 4 | OPTIONAL | ACCUM CASE | ```OPTIONAL {?cwork cwork:title ?title .}``` | ```ACCUM CASE t.uri WHEN "cwork:title" THEN s.@title += t1.value``` |
 | Rule 5 | GROUP BY| GROUP BY | ```GROUP BY ?cwork``` | ```GROUP BY s.uri``` |
-| Rule 6 | ORDER BY | ORDER BY| ```ORDER BY ?dataModified ?cwork``` | ```ORDER BY b ASC, a ASC``` |
+| Rule 6 | ORDER BY | ORDER BY| ```ORDER BY ASC(?dataModified) ASC(?cwork)``` | ```ORDER BY s.@dateModified ASC, cwork ASC``` |
 | Rule 7 | LIMIT | LIMIT | ```LIMIT 5``` | ```LIMIT 5``` |
 
 ![SPARQL](./screenshots/sparql.png)
@@ -84,9 +85,7 @@ ordered in ascending order by their dateModified.
 
 ## Contributers
 ```
-Lu Zhou
-Research Engineer
-Jay Yu 
-VP of Product and Innovation
+Lu Zhou, Jay Yu 
+Innovation Lab
 TigerGraph, Inc.
 ```

@@ -25,13 +25,13 @@ CREATE QUERY basic_query6_optimized() FOR GRAPH ldbc_test {
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   creativeworks = SELECT s
-                  FROM creativework:t1 - (<hasInstanceObject) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance) - ClassInstance:s
+                  FROM creativework:t1 - (<hasObjectInstance) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # find all instances that mention a geo-location
   geolocation = SELECT s
-                FROM creativeworks:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - (hasInstanceObject>:e1) - ClassInstance:t1 - 
-                      (hasDatatypePropertyInstance>:e2) - DatatypePropertyInstance:t2 - (hasValue>:e3) - ValueInstance:t3
+                FROM creativeworks:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - (hasObjectInstance>:e1) - ClassInstance:t1 - 
+                      (hasDatatypePropertyInstance>:e2) - DatatypePropertyInstance:t2 - (hasValueInstance>:e3) - ValueInstance:t3
                 WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions" 
                 ACCUM CASE 
                 WHEN t2.uri == "http://www.w3.org/2003/01/geo/wgs84_pos#lat"
@@ -42,7 +42,7 @@ CREATE QUERY basic_query6_optimized() FOR GRAPH ldbc_test {
   
   # find the dateModified infomation
   dateModified = SELECT s  
-                 FROM geolocation:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - (hasValue>:e1) - ValueInstance:t1
+                 FROM geolocation:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - (hasValueInstance>:e1) - ValueInstance:t1
                  WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified"
                  ACCUM s.@dateModified += t1.value
                  ORDER BY s.uri DESC;

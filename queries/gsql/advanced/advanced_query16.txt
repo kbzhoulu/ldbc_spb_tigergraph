@@ -24,17 +24,17 @@ CREATE QUERY advanced_query16_optimized(/* Parameters here */) FOR GRAPH ldbc_te
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   creativeworks = SELECT s
-                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # find subclass of CreativeWork
   subclassofCW = SELECT s
-                 FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                 FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
                  WHERE t.uri == "http://www.w3.org/2000/01/rdf-schema#subClassOf";
  
   # find the instances of creativework and its subclasses
   instances = SELECT s
-              FROM subclassofCW:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - creativeworks:s
+              FROM subclassofCW:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - creativeworks:s
               WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # filter the results by the specific audience type
@@ -43,7 +43,7 @@ CREATE QUERY advanced_query16_optimized(/* Parameters here */) FOR GRAPH ldbc_te
                           WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/InternationalAudience";
   
   filteredAudience = SELECT s
-                     FROM internationalAudience:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t -
+                     FROM internationalAudience:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
                           (<hasObjectPropertyInstance:e1) - instances:s
                      WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/audience";
   
@@ -53,7 +53,7 @@ CREATE QUERY advanced_query16_optimized(/* Parameters here */) FOR GRAPH ldbc_te
                 WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/tag";
   
   subPropertyOftag = SELECT s
-                     FROM propertyTag:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - 
+                     FROM propertyTag:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - 
                           (<hasObjectPropertyInstance:e1) - ClassInstance:s
                      WHERE t.uri == "http://www.w3.org/2000/01/rdf-schema#subPropertyOf"
                      ACCUM @@subPropertyOftag += s.uri;
@@ -61,7 +61,7 @@ CREATE QUERY advanced_query16_optimized(/* Parameters here */) FOR GRAPH ldbc_te
   # find the topics that the creativeworks have been tagged
   tag = SELECT s
         FROM filteredAudience:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
-              (hasInstanceObject>:e1) - ClassInstance:t1
+              (hasObjectInstance>:e1) - ClassInstance:t1
         WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/tag" 
         ACCUM s.@tag += t1.uri;
   
@@ -69,7 +69,7 @@ CREATE QUERY advanced_query16_optimized(/* Parameters here */) FOR GRAPH ldbc_te
   FOREACH item in @@subPropertyOftag DO
     tag = SELECT s
               FROM filteredAudience:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
-                 (hasInstanceObject>:e1) - ClassInstance:t1
+                 (hasObjectInstance>:e1) - ClassInstance:t1
               WHERE t.uri == item
               ACCUM s.@am += t1.uri;
   END;
@@ -77,7 +77,7 @@ CREATE QUERY advanced_query16_optimized(/* Parameters here */) FOR GRAPH ldbc_te
   # collect category and title info
   info = SELECT s
          FROM tag:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
-              ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+              ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
          ACCUM CASE t.uri
          WHEN "http://www.bbc.co.uk/ontologies/creativework/category" THEN s.@category += t1.uri
          WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t1.value

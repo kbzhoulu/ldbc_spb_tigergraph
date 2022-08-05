@@ -22,7 +22,7 @@ CREATE QUERY advanced_query5_optimized() FOR GRAPH ldbc_test {
                    s.uri == "http://www.bbc.co.uk/category/Company";
   
   instances = SELECT s
-              FROM category:t - (<hasInstanceObject:e) - ObjectPropertyInstance:t1 -
+              FROM category:t - (<hasObjectInstance:e) - ObjectPropertyInstance:t1 -
                    (<hasObjectPropertyInstance:e1) - ClassInstance:s
               WHERE t1.uri == "http://www.bbc.co.uk/ontologies/creativework/category";
   
@@ -33,12 +33,12 @@ CREATE QUERY advanced_query5_optimized() FOR GRAPH ldbc_test {
   
   about = SELECT t1
           FROM instances:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
-               (hasInstanceObject>:e1) - ClassInstance:t1 
+               (hasObjectInstance>:e1) - ClassInstance:t1 
           WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about"
           ACCUM t1.@cw += 1;
   
   filteredAbout = SELECT s
-                  FROM event:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - about:s
+                  FROM event:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - about:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
           
   # Print out the result

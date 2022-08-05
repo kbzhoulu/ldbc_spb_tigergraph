@@ -42,7 +42,7 @@ CREATE QUERY advanced_query1_optimized() FOR GRAPH ldbc_test {
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   instancesOfCW = SELECT s
-                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # retrieve the topics that these creative works are about
@@ -51,12 +51,12 @@ CREATE QUERY advanced_query1_optimized() FOR GRAPH ldbc_test {
           WHERE s.uri == "http://dbpedia.org/resource/Markus_Zillner";
   
   abouts = SELECT s
-          FROM topic:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - instancesOfCW:s
+          FROM topic:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - instancesOfCW:s
           WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about";
   
   # retrieve 10 most recent creative works by sorting the result in descending order 
   dateModified = SELECT s
-                 FROM abouts:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - (hasValue>:e1) - ValueInstance:t1
+                 FROM abouts:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - (hasValueInstance>:e1) - ValueInstance:t1
                  WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified" 
                  ACCUM s.@dateModified += t1.value
                  ORDER BY s.@dateModified DESC
@@ -66,7 +66,7 @@ CREATE QUERY advanced_query1_optimized() FOR GRAPH ldbc_test {
   # dataproperty title, shortTitle, dateCreated, dateModified, description
   creativeWorksInfo = SELECT s
                       FROM dateModified:s - ((hasDatatypePropertyInstance>|hasObjectPropertyInstance>):e) - (DatatypePropertyInstance|ObjectPropertyInstance):t -
-                           ((hasValue>|hasInstanceObject>):e2) - (ClassInstance|ValueInstance):t2
+                           ((hasValueInstance>|hasObjectInstance>):e2) - (ClassInstance|ValueInstance):t2
                       ACCUM CASE t.uri 
                       WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t2.value
                       WHEN "http://www.bbc.co.uk/ontologies/creativework/shortTitle" THEN s.@shortTitle += t2.value
@@ -83,8 +83,8 @@ CREATE QUERY advanced_query1_optimized() FOR GRAPH ldbc_test {
   # if the creative work has thumbnail, return its thumbnailAltText and thumbnailType 
   thumbnail = SELECT t1
               FROM creativeWorksInfo:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
-                    (hasInstanceObject>:e1) - ClassInstance:t1 - ((hasDatatypePropertyInstance>|hasObjectPropertyInstance>):e2) - 
-                    (DatatypePropertyInstance|ObjectPropertyInstance):t2 - ((hasValue>|hasInstanceObject>):e3) - (ValueInstance|ClassInstance):t3
+                    (hasObjectInstance>:e1) - ClassInstance:t1 - ((hasDatatypePropertyInstance>|hasObjectPropertyInstance>):e2) - 
+                    (DatatypePropertyInstance|ObjectPropertyInstance):t2 - ((hasValueInstance>|hasObjectInstance>):e3) - (ValueInstance|ClassInstance):t3
               WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/thumbnail"
               ACCUM CASE 
               WHEN t2.uri == "http://www.bbc.co.uk/ontologies/creativework/altText" THEN t1.@altText += t3.uri
@@ -96,8 +96,8 @@ CREATE QUERY advanced_query1_optimized() FOR GRAPH ldbc_test {
   # aboutPreferredLabel, mentionsLabel, mentionsShortLabel, and mentionsPreferredLabel
   aboutInfo = SELECT s
               FROM dateModified:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
-                   (hasInstanceObject>:e1) - ClassInstance:t1 - (hasDatatypePropertyInstance>:e2) - 
-                   DatatypePropertyInstance:t2 - (hasValue>:e3) - ValueInstance:t3
+                   (hasObjectInstance>:e1) - ClassInstance:t1 - (hasDatatypePropertyInstance>:e2) - 
+                   DatatypePropertyInstance:t2 - (hasValueInstance>:e3) - ValueInstance:t3
               WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about"
               ACCUM CASE t2.uri 
               WHEN "http://www.w3.org/2000/01/rdf-schema#label" THEN s.@aboutLabel += t3.value
@@ -107,8 +107,8 @@ CREATE QUERY advanced_query1_optimized() FOR GRAPH ldbc_test {
   
   mentionsInfo = SELECT s
                  FROM dateModified:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
-                      (hasInstanceObject>:e1) - ClassInstance:t1 - (hasDatatypePropertyInstance>:e2) - 
-                      DatatypePropertyInstance:t2 - (hasValue>:e3) - ValueInstance:t3
+                      (hasObjectInstance>:e1) - ClassInstance:t1 - (hasDatatypePropertyInstance>:e2) - 
+                      DatatypePropertyInstance:t2 - (hasValueInstance>:e3) - ValueInstance:t3
                  WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions"
                  ACCUM CASE t2.uri 
                  WHEN "http://www.w3.org/2000/01/rdf-schema#label" THEN s.@mentionsLabel += t3.value

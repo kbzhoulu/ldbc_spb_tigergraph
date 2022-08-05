@@ -19,14 +19,14 @@ CREATE QUERY advanced_query13_optimized(/* Parameters here */) FOR GRAPH ldbc_te
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   creativeWorks = SELECT s
-                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t -
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
                        (<hasObjectPropertyInstance:e1) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # collect information based and filter based on the specific category
   result = SELECT s
            FROM creativeWorks:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t -
-                ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+                ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
            ACCUM CASE 
            WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/about" THEN s.@about += t1.uri 
            WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions" THEN s.@mentions += t1.uri

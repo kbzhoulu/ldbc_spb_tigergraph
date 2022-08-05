@@ -27,7 +27,7 @@ CREATE QUERY advanced_query22_optimized(/* Parameters here */) FOR GRAPH ldbc_te
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   creativeworks = SELECT s
-                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # filter the creativework that beling to specific category
@@ -36,7 +36,7 @@ CREATE QUERY advanced_query22_optimized(/* Parameters here */) FOR GRAPH ldbc_te
             WHERE s.uri == "http://www.bbc.co.uk/category/Event";
   
   category = SELECT s
-             FROM company:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - 
+             FROM company:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - 
                   (<hasObjectPropertyInstance:e1) - creativeworks:s
              WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/category"
              ACCUM s.@category += t1.uri;
@@ -44,7 +44,7 @@ CREATE QUERY advanced_query22_optimized(/* Parameters here */) FOR GRAPH ldbc_te
   # collect info 
   result = SELECT s
            FROM category:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
-                ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+                ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
            ACCUM CASE t.uri 
            WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t1.value
            WHEN "http://www.bbc.co.uk/ontologies/creativework/description" THEN s.@description += t1.value
@@ -66,7 +66,7 @@ CREATE QUERY advanced_query22_optimized(/* Parameters here */) FOR GRAPH ldbc_te
   
   result = SELECT t1
            FROM filteredResult:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
-                (hasInstanceObject>:e1) - ClassInstance:t1
+                (hasObjectInstance>:e1) - ClassInstance:t1
            WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/tag" 
            ACCUM t1.@cw += 1, t1.@year += s.@year, t1.@month += s.@month;
 

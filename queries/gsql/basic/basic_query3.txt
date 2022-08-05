@@ -37,7 +37,7 @@ CREATE QUERY basic_query3_optimized() FOR GRAPH ldbc_test {
                   s.uri == "http://www.bbc.co.uk/ontologies/creativework/NewsItem";
   
   instances = SELECT s
-          FROM cwtypes:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+          FROM cwtypes:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
           WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # find the returned instances that are about a specific topic
@@ -46,7 +46,7 @@ CREATE QUERY basic_query3_optimized() FOR GRAPH ldbc_test {
           WHERE s.uri == "http://dbpedia.org/resource/Margherita_Granbassi";
   
   topics = SELECT s
-           FROM topic:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - instances:s 
+           FROM topic:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - instances:s 
            WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/tag"; 
   
   # find the value of primaryFormat is one of TexturalFormat, InteractiveFormat, or PictureGalleryFormat
@@ -57,7 +57,7 @@ CREATE QUERY basic_query3_optimized() FOR GRAPH ldbc_test {
                  s.uri == "http://www.bbc.co.uk/ontologies/creativework/PictureGalleryFormat";
   
   formats = SELECT s
-            FROM format:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) -  topics:s
+            FROM format:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) -  topics:s
             WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/primaryFormat";
   
   # find the audience type should be InternationalAudience
@@ -66,13 +66,13 @@ CREATE QUERY basic_query3_optimized() FOR GRAPH ldbc_test {
              WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/InternationalAudience";
   
   audiences = SELECT s
-              FROM audience:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) -  formats:s
+              FROM audience:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) -  formats:s
               WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/audience";
   
   # retrieve all related nodes and order om descending of the creationDate
   results = SELECT s
             FROM audiences:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
-                  ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+                  ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
             ACCUM CASE t.uri
             WHEN "http://www.bbc.co.uk/ontologies/creativework/dateCreated" THEN s.@dateCreated += t1.value
             WHEN "http://www.bbc.co.uk/ontologies/creativework/altText" THEN s.@altText += t1.value

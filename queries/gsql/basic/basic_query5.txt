@@ -26,7 +26,7 @@ CREATE QUERY basic_query5_optimized() FOR GRAPH ldbc_test {
              WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/BlogPost";
   
   creativeworks = SELECT s
-                  FROM blogpost:t1 - (<hasInstanceObject) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance) - ClassInstance:s
+                  FROM blogpost:t1 - (<hasObjectInstance) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # filter the instances have a given audience
@@ -35,20 +35,20 @@ CREATE QUERY basic_query5_optimized() FOR GRAPH ldbc_test {
                           WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/InternationalAudience";
   
   audience = SELECT s
-             FROM internationalAudience:t1- (<hasInstanceObject) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance) - creativeworks:s
+             FROM internationalAudience:t1- (<hasObjectInstance) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance) - creativeworks:s
              WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/audience";
   
   # find the dateModified info and filter the results within a time range based on the dateModified
   dateModified = SELECT s
                  FROM audience:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
-                      (hasValue>:e1) - ValueInstance:t1
+                      (hasValueInstance>:e1) - ValueInstance:t1
                  WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified" 
                  ACCUM s.@dateModified += t1.value;
   
   # find the topics and prefLabel that the instances are about
   topics = SELECT t1
            FROM dateModified:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
-                (hasInstanceObject>:e1) - ClassInstance:t1
+                (hasObjectInstance>:e1) - ClassInstance:t1
            WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/tag" AND 
                  to_datetime(s.@dateModified) >= to_datetime("2011-10-06T02:40:51Z") AND 
                  to_datetime(s.@dateModified) < to_datetime("2011-10-10T03:40:51Z")
@@ -56,7 +56,7 @@ CREATE QUERY basic_query5_optimized() FOR GRAPH ldbc_test {
   
   result = SELECT s
            FROM topics:s - (hasDatatypePropertyInstance>:e) - 
-                DatatypePropertyInstance:t - (hasValue>:e1) - ValueInstance:t1
+                DatatypePropertyInstance:t - (hasValueInstance>:e1) - ValueInstance:t1
            ACCUM CASE t.uri
            WHEN "http://www.w3.org/2000/01/rdf-schema#label" THEN s.@label += t1.value
            WHEN "http://xmlns.com/foaf/0.1/name" THEN s.@label += t1.value
@@ -64,7 +64,7 @@ CREATE QUERY basic_query5_optimized() FOR GRAPH ldbc_test {
   /*
   labels = SELECT s
            FROM topics:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
-                (hasValue>:e1) - ValueInstance:t1;
+                (hasValueInstance>:e1) - ValueInstance:t1;
            IF t == "http://www.w3.org/2000/01/rdf-schema#label" 
            THEN s.@label += t1.value;
            ELSE IF t.uri == "http://xmlns.com/foaf/0.1/name"

@@ -27,12 +27,12 @@ CREATE QUERY advanced_query11_optimized() FOR GRAPH ldbc_test {
   
   gatherAbout = SELECT t1
                 FROM creativework:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
-                     (hasInstanceObject>:e1) - ClassInstance:t1 
+                     (hasObjectInstance>:e1) - ClassInstance:t1 
                 WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about"; 
   
   # find other creativeworks that are about these topics
   relatedCWAbout = SELECT s
-                   FROM gatherAbout:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t -
+                   FROM gatherAbout:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
                         (<hasObjectPropertyInstance:e1) - ClassInstance:s
                    WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about"
                    ACCUM s.@about += 1, @@relatedNode += s;
@@ -40,19 +40,19 @@ CREATE QUERY advanced_query11_optimized() FOR GRAPH ldbc_test {
   # find the topics that the given creativework mentions
   gatherMentions = SELECT t1
                    FROM creativework:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
-                        (hasInstanceObject>:e1) - ClassInstance:t1 
+                        (hasObjectInstance>:e1) - ClassInstance:t1 
                    WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions"; 
   
   # find other creativeworks also mention these topics
   relatedCWMentions = SELECT s
-                      FROM gatherMentions:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t -
+                      FROM gatherMentions:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
                            (<hasObjectPropertyInstance:e1) - ClassInstance:s
                       WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions"
                       ACCUM s.@mentions += 1, @@relatedNode += s;
   
   # find other creativeworks also mention the topics that the given creativework is about
   relatedCWAboutMentions = SELECT s
-                           FROM gatherAbout:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t -
+                           FROM gatherAbout:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
                                 (<hasObjectPropertyInstance:e1) - ClassInstance:s
                            WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions"
                            ACCUM s.@aboutMentions += 1, @@relatedNode += s;
@@ -61,7 +61,7 @@ CREATE QUERY advanced_query11_optimized() FOR GRAPH ldbc_test {
   
   result = SELECT s
            FROM result:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
-                (hasValue>:e1) - ValueInstance:t1
+                (hasValueInstance>:e1) - ValueInstance:t1
            WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified"
            ACCUM s.@score = s.@about * 2 + s.@mentions * 0.5 + s.@aboutMentions, s.@dateModified += t1.value
            ORDER BY s.@score DESC, s.@dateModified DESC

@@ -28,13 +28,13 @@ CREATE QUERY advanced_query23_optimized(/* Parameters here */) FOR GRAPH ldbc_te
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   creativeworks = SELECT s
-                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   # collec info
   info = SELECT s
            FROM creativeworks:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
-                ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+                ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
            ACCUM CASE t.uri 
            WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t1.value
            WHEN "http://www.bbc.co.uk/ontologies/creativework/description" THEN s.@description += t1.value
@@ -57,7 +57,7 @@ CREATE QUERY advanced_query23_optimized(/* Parameters here */) FOR GRAPH ldbc_te
   
   # filter results based on type of category
   filteredInfo = SELECT s
-                 FROM ClassInstance:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t - 
+                 FROM ClassInstance:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - 
                       (<hasObjectPropertyInstance:e1) - filteredInfo:s
                  WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/category" AND
                        t1.uri == "http://www.bbc.co.uk/category/Persons"

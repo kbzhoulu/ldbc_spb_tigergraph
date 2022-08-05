@@ -18,20 +18,20 @@ CREATE QUERY advanced_query7_optimized(/* Parameters here */) FOR GRAPH ldbc_tes
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   creativeWorks = SELECT s
-                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t -
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
                        (<hasObjectPropertyInstance:e1) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   primaryContentOf = SELECT s
                      FROM creativeWorks:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
-                          (hasInstanceObject>:e1) - ClassInstance:t1
+                          (hasObjectInstance>:e1) - ClassInstance:t1
                      WHERE t.uri == "http://www.bbc.co.uk/ontologies/bbc/primaryContentOf"
                      ACCUM s.@primaryContentOf += 1;
   
   # find the topics that theses creativeworks mention and count the number of creativeworks each mention has
   mention = SELECT t1
             FROM primaryContentOf:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
-                  (hasInstanceObject>:e1) - ClassInstance:t1
+                  (hasObjectInstance>:e1) - ClassInstance:t1
             WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions" AND
                   s.@primaryContentOf > 1 
             ACCUM t1.@mentions += 1;

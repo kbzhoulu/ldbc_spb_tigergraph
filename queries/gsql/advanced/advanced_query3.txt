@@ -21,13 +21,13 @@ CREATE QUERY advanced_query3_optimized() FOR GRAPH ldbc_test {
                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
   
   creativeWorks = SELECT s
-                  FROM creativework:t1 - (<hasInstanceObject:e) - ObjectPropertyInstance:t -
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
                        (<hasObjectPropertyInstance:e1) - ClassInstance:s
                   WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
   
   dateModified = SELECT s
                  FROM creativeWorks:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
-                      (hasValue>:e1) - ValueInstance:t1
+                      (hasValueInstance>:e1) - ValueInstance:t1
                  WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified"
                  ACCUM s.@dateModified += t1.value, 
                        s.@minute += minute(to_datetime(t1.value));

@@ -20,19 +20,19 @@ CREATE QUERY basic_query11_optimized() FOR GRAPH ldbc_test {
   /*
   entity = SELECT t1
            FROM creativework:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
-                (hasInstanceObject>:e1) - ClassInstance:t1 - (hasObjectPropertyInstance>:e2) - 
-                ObjectPropertyInstance:t2 - (hasInstanceObject>:e3) - ClassInstance:t3
+                (hasObjectInstance>:e1) - ClassInstance:t1 - (hasObjectPropertyInstance>:e2) - 
+                ObjectPropertyInstance:t2 - (hasObjectInstance>:e3) - ClassInstance:t3
            WHERE t2.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" AND
                  t3.uri == "http://www.bbc.co.uk/ontologies/coreconcepts/Thing";
   */
   
   topics = SELECT s
-                  FROM creativework:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - (hasInstanceObject>:e1) - ClassInstance:t1
+                  FROM creativework:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - (hasObjectInstance>:e1) - ClassInstance:t1
                   WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/tag";
   
   results = SELECT s
             FROM topics:s - ((hasDatatypePropertyInstance>|hasObjectPropertyInstance>):e) - 
-                  (ObjectPropertyInstance|DatatypePropertyInstance):t - ((hasInstanceObject>|hasValue>):e1) - (ClassInstance|ValueInstance):t1
+                  (ObjectPropertyInstance|DatatypePropertyInstance):t - ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
             ACCUM CASE t.uri
             WHEN "http://www.bbc.co.uk/ontologies/creativework/dateModified" THEN s.@dateModified += t1.value
             WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t1.value
