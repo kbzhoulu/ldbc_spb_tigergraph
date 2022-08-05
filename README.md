@@ -50,13 +50,7 @@ ex:Tigergraph ex:hasName "Tigergraph"@en .
 *Figure 2. Example triples in Tigergraph*
 
 ## SPARQL to GSQL Translation
-Example query:
-```
-Retrieve properties dateModified, title, category, liveCoverage, audience for all 
-creative works that are of a given type. The value of property dateModified of the 
-retrieved creative works should be within a certain time range. Return 5 results 
-ordered in ascending order by their dateModified.
-```
+Mappings and Examples:
 
 | Mapping Rules | SPAQRL | GSQL | SPAQRL Examples | GSQL Examples |
 |:---:|:---:|:---:| --- | --- |
@@ -67,6 +61,14 @@ ordered in ascending order by their dateModified.
 | Rule 5 | GROUP BY| GROUP BY | ```GROUP BY ?cwork``` | ```GROUP BY s.uri``` |
 | Rule 6 | ORDER BY | ORDER BY| ```ORDER BY ASC(?dataModified) ASC(?cwork)``` | ```ORDER BY s.@dateModified ASC, cwork ASC``` |
 | Rule 7 | LIMIT | LIMIT | ```LIMIT 5``` | ```LIMIT 5``` |
+
+Example query description:
+```
+Retrieve properties dateModified, title, category, liveCoverage, audience for all 
+creative works that are of a given type. The value of property dateModified of the 
+retrieved creative works should be within a certain time range. Return 5 results 
+ordered in ascending order by their dateModified.
+```
 
 ![SPARQL](./screenshots/sparql.png)
 
