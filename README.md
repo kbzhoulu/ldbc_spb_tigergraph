@@ -26,6 +26,7 @@ Mapping Rules and examples from RDF graphs to Tigergraph
 
 ex:Tigergraph rdf:type ex:Private Company .
 ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
+ex:Tigergraph ex:hasName "Tigergraph"@en .
 ```
 | Mapping Rules | RDF Graphs | TigerGraph | Examples |
 |:---:|:---:|:---:|:---:|
@@ -36,7 +37,7 @@ ex:Tigergraph ex:hasName "Tigergraph"^^xsd:string .
 | Rule 5 | Object (isLiteral) | ValueInstance | "Tigergraph"^^xsd:string |
 | Rule 6 | Literal Value | ValueInstance's attribute: value | Tigergraph |
 | Rule 7 | Datatype | ValueInstance's attribute: datatype | xsd:string |
-| Rule 8 | Language Tag | ValueInstance's attribute: langTag | xsd:string |
+| Rule 8 | Language Tag | ValueInstance's attribute: langTag | en |
 
 ## Example Graphs in Diagram
 
