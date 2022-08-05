@@ -180,8 +180,8 @@ results = conn.gsql(
 
     CREATE DIRECTED EDGE hasDatatypePropertyInstance (FROM ClassInstance, TO DatatypePropertyInstance) WITH REVERSE_EDGE="reverse_hasDatatypePropertyInstance"
     CREATE DIRECTED EDGE hasObjectPropertyInstance (FROM ClassInstance, TO ObjectPropertyInstance) WITH REVERSE_EDGE="reverse_hasObjectPropertyInstance"
-    CREATE DIRECTED EDGE hasInstanceObject (FROM ObjectPropertyInstance, TO ClassInstance) WITH REVERSE_EDGE="reverse_hasInstanceObject"
-    CREATE DIRECTED EDGE hasValue (FROM DatatypePropertyInstance, TO ValueInstance) WITH REVERSE_EDGE="reverse_hasValue"
+    CREATE DIRECTED EDGE hasObjectInstance (FROM ObjectPropertyInstance, TO ClassInstance) WITH REVERSE_EDGE="reverse_hasObjectInstance"
+    CREATE DIRECTED EDGE hasValueInstance (FROM DatatypePropertyInstance, TO ValueInstance) WITH REVERSE_EDGE="reverse_hasValueInstance"
     
     CREATE GLOBAL SCHEMA_CHANGE JOB attribute_index {
         ALTER VERTEX ClassInstance ADD INDEX ClassInstance_uri_index ON (uri);
@@ -212,13 +212,13 @@ results = conn.gsql('''
     DEFINE FILENAME DP;
 
     LOAD OP TO EDGE hasObjectPropertyInstance VALUES($1, $5) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
-    LOAD OP TO EDGE hasInstanceObject VALUES($5, $3) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD OP TO EDGE hasObjectInstance VALUES($5, $3) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
     LOAD OP TO VERTEX ClassInstance VALUES($1, $1) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
     LOAD OP TO VERTEX ObjectPropertyInstance VALUES($5, $2) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
     LOAD OP TO VERTEX ClassInstance VALUES($3, $3) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
 
     LOAD DP TO EDGE hasDatatypePropertyInstance VALUES($1, $6) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
-    LOAD DP TO EDGE hasValue VALUES($6, $7) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD DP TO EDGE hasValueInstance VALUES($6, $7) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
     LOAD DP TO VERTEX ClassInstance VALUES($1, $1) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
     LOAD DP TO VERTEX DatatypePropertyInstance VALUES($6, $2) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
     LOAD DP TO VERTEX ValueInstance VALUES($7, $3, $5) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
