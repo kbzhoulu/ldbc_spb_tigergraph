@@ -86,9 +86,27 @@ ordered in ascending order by their dateModified.
 
 *Figure 6. Results returned by running GSQL query*
 
+## Query Performance Evaluation
+* Platform: 
+| Graph DBMS | TigerGraph & RDF triple store |
+| OS | MacOS 12.4 Montery |
+| CPU | 2.3GHz 8-core Intel i9 |
+| Memory | 30G 2667 MHz DDR4 |
+
+* Queries:
+	11 basic and 25 advanced SPARQL and GSQL queries
+
+* Matrix: 
+	Average of Execution Time (10 times)
+
+* Result: Average of Execution Time in TG/Average of Execution Time in RDF triple store (no engine level optimization)
+	44.4% Faster in Tigergraph (1.5 - 83.9 SpeedUp) 
+	27.8% Faster in RDF triplestore (1.2 - 8.7 SpeedUp)
+	27.8% very close (within 0.03s)
+
 ## Contributers
 ```
 Lu Zhou, Jay Yu 
-Innovation Lab
+Innovation and Development Center
 TigerGraph, Inc.
 ```
