@@ -88,6 +88,7 @@ ordered in ascending order by their dateModified.
 
 ## Query Performance Evaluation
 * Platform: 
+
 |Configuration | Value | 
 |:---:|:---:|
 | Graph DBMS | TigerGraph & RDF triple store |
