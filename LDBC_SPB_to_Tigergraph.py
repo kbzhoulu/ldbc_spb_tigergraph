@@ -51,12 +51,13 @@ output_path = "./data/output/"
 # your local machine and run the sparql queries via the endpoint http://localhost:7200/repositories/ldbc-spb 
 # or you can directly run the query using the webpage and download it directly
 # note: downloading all triples is time-consuming, the query might take a while to run
+# if you have an rdf dump, you can load it using rdflib library and extract the infomration. 
 g = Graph()
 
 log("running sparql to get all triple with object properties")
 
 objectPropertyTriples = """
-    SELECT ?s ?p ?o (CONCAT(str(?s), str(?p), str(?o)) as ?c)
+    SELECT ?s ?p ?o (MD5(concat(str(?s), str(?p), str(?o))) AS ?pid)
     WHERE {
     SERVICE <http://localhost:7200/repositories/ldbc-spb> {
         ?s ?p ?o .
@@ -72,7 +73,9 @@ log("running successfully")
 log("running sparql to get all triple with datatype property properties")
 
 datatypePropertyTriples = """
-    SELECT ?s ?p ?o (CONCAT(str(?s), str(?p), str(?o)) as ?c) (datatype(?o) as ?d) 
+    SELECT ?s ?p ?o (datatype(?o) as ?d) (lang(?o) as ?l) 
+    (MD5(concat(str(?s), str(?p), str(?o), lang(?o))) AS ?pid) 
+    (MD5(concat(str(?o), lang(?o))) AS ?vid)   
     WHERE {
     SERVICE <http://localhost:7200/repositories/ldbc-spb> {
         ?s ?p ?o .
@@ -104,43 +107,46 @@ with open(object_file, "w") as f1:
 # In[ ]:
 
 
-#### read the csv file in to dataframe
-# datatype property triples
-log("reading triples from csv files")
-datatype_file = os.path.join(data_path, "tigergraph/datatype.csv")
-datatype_df = pd.read_csv(datatype_file, delimiter=',', header=0, low_memory=False)
-# object property triples
-object_file = os.path.join(data_path, "tigergraph/object.csv")
-object_df = pd.read_csv(object_file, delimiter=',', header=0, low_memory=False)
-
-log("load csv file into dataframe successfully")
+## get all namespeces in the graph
+def getNamespaces(g):
+    namespaces = {};
+    for prefix, uri in g.namespaces():
+        namespaces[prefix] = URIRef(uri)
+        
+    return namespaces
 
 
 # In[ ]:
 
 
-#### convert the long IDs to hash
-# datatype property id
-log("hashing the long id")
+## shorten the IRIs using prefix in the csv files
+def shortenNamespaces(file, file1):
+    text = open(file, "r")
+    text = ''.join([i for i in text]) 
+    namespaces = getNamespaces(g)
 
-datatype_df['dpiid'] = datatype_df.apply(lambda row: hashlib.md5(str(row.c).encode()).hexdigest(), axis = 1)
-# value id
-datatype_df['viid'] = datatype_df.apply(lambda row: hashlib.md5(str(row.o).encode()).hexdigest(), axis = 1)
-# object property Id
-object_df['id'] = object_df.apply(lambda row: hashlib.md5(str(row.c).encode()).hexdigest(), axis = 1)
-
-log("generate hashsed IDs successfully")
+    for k, v in namespaces.items():
+        if k == "":
+            text = text.replace(v, "base:")
+        else:
+            text = text.replace(v, k + ":")
+            
+    x = open(file1, "w")
+    x.writelines(text)
+    x.close()
 
 
 # In[ ]:
 
 
 #### save to files 
-log("saving generated IDs with data to csv files")
-# object property triples with hashed IDs
-object_df.to_csv('./data/input/tigergraph/object_hashed.csv')
-# datatype property triples with hashed IDs
-datatype_df.to_csv('./data/input/tigergraph/datatype_hashed.csv')
+log("saving abbrivated data to csv files")
+datatype_file_abbreviated = os.path.join(data_path, "tigergraph/datatype_abbreviated.csv")
+object_file_abbreviated = os.path.join(data_path, "tigergraph/object_abbreviated.csv")
+# object property triples with hashed IDs and relative IRIs
+shortenNamespaces(datatype_file, datatype_file_abbreviated)
+# datatype property triples with hashed IDs and relative IRIs
+shortenNamespaces(datatype_file, object_file_abbreviated)
 
 log("saved successfully")
 
@@ -176,7 +182,7 @@ results = conn.gsql(
     CREATE VERTEX ClassInstance (primary_id id STRING, uri STRING)
     CREATE VERTEX ObjectPropertyInstance (primary_id id STRING, uri STRING)
     CREATE VERTEX DatatypePropertyInstance (primary_id id STRING, uri STRING)
-    CREATE VERTEX ValueInstance (primary_id id STRING, value STRING, datatype STRING)
+    CREATE VERTEX ValueInstance (primary_id id STRING, value STRING, datatype STRING, langTag STRING)
 
     CREATE DIRECTED EDGE hasDatatypePropertyInstance (FROM ClassInstance, TO DatatypePropertyInstance) WITH REVERSE_EDGE="reverse_hasDatatypePropertyInstance"
     CREATE DIRECTED EDGE hasObjectPropertyInstance (FROM ClassInstance, TO ObjectPropertyInstance) WITH REVERSE_EDGE="reverse_hasObjectPropertyInstance"
@@ -188,6 +194,8 @@ results = conn.gsql(
         ALTER VERTEX ObjectPropertyInstance ADD INDEX ObjectPropertyInstance_uri_index ON (uri);
         ALTER VERTEX DatatypePropertyInstance ADD INDEX DatatypePropertyInstance_uri_index ON (uri);
         ALTER VERTEX ValueInstance ADD INDEX ValueInstance_value_index ON (value);
+        ALTER VERTEX ValueInstance ADD INDEX ValueInstance_datatype_index ON (datatype);
+        ALTER VERTEX ValueInstance ADD INDEX ValueInstance_langTag_index ON (langTag);
     }
     
     RUN GLOBAL SCHEMA_CHANGE JOB attribute_index
@@ -211,22 +219,21 @@ results = conn.gsql('''
     DEFINE FILENAME OP;
     DEFINE FILENAME DP;
 
-    LOAD OP TO EDGE hasObjectPropertyInstance VALUES($1, $5) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
-    LOAD OP TO EDGE hasObjectInstance VALUES($5, $3) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
-    LOAD OP TO VERTEX ClassInstance VALUES($1, $1) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
-    LOAD OP TO VERTEX ObjectPropertyInstance VALUES($5, $2) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
-    LOAD OP TO VERTEX ClassInstance VALUES($3, $3) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD OP TO EDGE hasObjectPropertyInstance VALUES($0, $3) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD OP TO EDGE hasObjectInstance VALUES($3, $2) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD OP TO VERTEX ClassInstance VALUES($0, $0) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD OP TO VERTEX ObjectPropertyInstance VALUES($3, $1) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD OP TO VERTEX ClassInstance VALUES($2, $2) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
 
-    LOAD DP TO EDGE hasDatatypePropertyInstance VALUES($1, $6) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
-    LOAD DP TO EDGE hasValueInstance VALUES($6, $7) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
-    LOAD DP TO VERTEX ClassInstance VALUES($1, $1) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
-    LOAD DP TO VERTEX DatatypePropertyInstance VALUES($6, $2) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
-    LOAD DP TO VERTEX ValueInstance VALUES($7, $3, $5) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD DP TO EDGE hasDatatypePropertyInstance VALUES($0, $5) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD DP TO EDGE hasValueInstance VALUES($5, $6) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD DP TO VERTEX ClassInstance VALUES($0, $0) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD DP TO VERTEX DatatypePropertyInstance VALUES($5, $1) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
+    LOAD DP TO VERTEX ValueInstance VALUES($6, $2, $3, $4) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
 
-    LOAD OP TO VERTEX ClassInstance VALUES($3, $1) USING SEPARATOR=",", HEADER="true", EOL="\\n", QUOTE="double";
     }
     
-    RUN LOADING JOB load_data USING OP="ANY:object_hashed.csv", DP="ANY:datatype_hashed.csv"
+    RUN LOADING JOB load_data USING OP="ANY:objectproperty.csv", DP="ANY:datatypeproperty.csv"
     '''
 )
 
@@ -252,14 +259,11 @@ conn = tg.TigerGraphConnection(host=hostname, username=username, password=passwo
 #### Load data to the graph
 log("Loading ldbc spb object property data to Tigergraph schema.")
 
-objectproperty_data_file = "./data/input/tigergraph/object_hashed.csv"
-datatypeproperty_data_file = "./data/input/tigergraph/datatype_hashed.csv"
-
-results = conn.uploadFile(objectproperty_data_file, fileTag='OP', jobName='load_data')
+results = conn.uploadFile(object_file_abbreviated, fileTag='OP', jobName='load_data')
 log(results)
 
 log("Loading ldbc spb datatype property data to Tigergraph schema.")
-results = conn.uploadFile(datatypeproperty_data_file, fileTag='DP', jobName='load_data')
+results = conn.uploadFile(datatype_file_abbreviated, fileTag='DP', jobName='load_data')
 
 log(results)
 
