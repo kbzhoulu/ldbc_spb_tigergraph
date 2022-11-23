@@ -1,0 +1,110 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://www.w3.org/2002/07/owl#> .
+
+[ rdf:type owl:Ontology
+ ] .
+
+#################################################################
+#    Annotation properties
+#################################################################
+
+###  http://www.bbc.co.uk/ontologies/bbc/primaryContentOf
+<http://www.bbc.co.uk/ontologies/bbc/primaryContentOf> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/about
+<http://www.bbc.co.uk/ontologies/creativework/about> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/altText
+<http://www.bbc.co.uk/ontologies/creativework/altText> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/audience
+<http://www.bbc.co.uk/ontologies/creativework/audience> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/category
+<http://www.bbc.co.uk/ontologies/creativework/category> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/dateCreated
+<http://www.bbc.co.uk/ontologies/creativework/dateCreated> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/dateModified
+<http://www.bbc.co.uk/ontologies/creativework/dateModified> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/description
+<http://www.bbc.co.uk/ontologies/creativework/description> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/liveCoverage
+<http://www.bbc.co.uk/ontologies/creativework/liveCoverage> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/mentions
+<http://www.bbc.co.uk/ontologies/creativework/mentions> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/primaryFormat
+<http://www.bbc.co.uk/ontologies/creativework/primaryFormat> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/shortTitle
+<http://www.bbc.co.uk/ontologies/creativework/shortTitle> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/thumbnail
+<http://www.bbc.co.uk/ontologies/creativework/thumbnail> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.bbc.co.uk/ontologies/creativework/title
+<http://www.bbc.co.uk/ontologies/creativework/title> rdf:type owl:AnnotationProperty .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://www.bbc.co.uk/ontologies/creativework/Programme
+<http://www.bbc.co.uk/ontologies/creativework/Programme> rdf:type owl:Class .
+
+
+#################################################################
+#    Individuals
+#################################################################
+
+###  http://www.bbc.co.uk/things/3#id
+<http://www.bbc.co.uk/things/3#id> rdf:type owl:NamedIndividual ,
+                                            <http://www.bbc.co.uk/ontologies/creativework/Programme> ;
+                                   <http://www.bbc.co.uk/ontologies/bbc/primaryContentOf> <http://www.bbc.co.uk/document/5#id> ,
+                                                                                          <http://www.bbc.co.uk/document/6#id> ,
+                                                                                          <http://www.bbc.co.uk/document/7#id> ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/about> <http://dbpedia.org/resource/Charles_McKean> ,
+                                                                                        <http://dbpedia.org/resource/Charles_White_Whittlesey> ,
+                                                                                        <http://dbpedia.org/resource/Jack_Trout> ,
+                                                                                        <http://dbpedia.org/resource/Ralph_Lysyshyn> ,
+                                                                                        <http://dbpedia.org/resource/Robert_Morse> ,
+                                                                                        <http://dbpedia.org/resource/Rochelle_Low> ,
+                                                                                        <http://dbpedia.org/resource/Thierry_Roland> ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/altText> "thumbnail atlText for CW http://www.bbc.co.uk/context/3#id" ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/audience> <http://www.bbc.co.uk/ontologies/creativework/InternationalAudience> ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/category> <http://www.bbc.co.uk/category/Persons> ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/dateCreated> "2011-02-10T09:58:41.784-08:00"^^xsd:dateTime ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/dateModified> "2011-09-29T18:18:54.872-07:00"^^xsd:dateTime ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/description> "pun commending indirect handbags putt unimaginable comedic stinks showcased ballerina topsides bloods jujubes." ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/liveCoverage> "true"^^xsd:boolean ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/mentions> <http://sws.geonames.org/2736178/> ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/primaryFormat> <http://www.bbc.co.uk/ontologies/creativework/VideoFormat> ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/shortTitle> "replaceable derived collectible avails hereto other previewers reviewers subplot oinks." ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/thumbnail> <http://www.bbc.co.uk/thumbnail/97160665> ;
+                                   <http://www.bbc.co.uk/ontologies/creativework/title> "Thierry Roland heckled unfairer sauce settee abuts nervy pathogen stowaways curtseyed payloads." .
+
+
+###  Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi

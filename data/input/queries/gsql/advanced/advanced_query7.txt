@@ -1,0 +1,47 @@
+CREATE QUERY advanced_query7_optimized(/* Parameters here */) FOR GRAPH ldbc_spb { 
+  /* Write query logic here */ 
+  /*
+  query name: advanced_query7_optimized.txt
+  query description:
+  Retrieve the N most popular topics that creative works mention. This query returns
+  the first ten results grouped by topic, ordered in descending order by the number of
+  tagging of each topic. Result is further limited by adding a condition on primary
+  contents for each creative work.
+  */
+  
+  SumAccum<INT> @mentions;
+  SumAccum<INT> @primaryContentOf;
+  
+  # find the instances of creativeworks that have primaryConentOf property
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
+  
+  creativeWorks = SELECT s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
+                       (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  primaryContentOf = SELECT s
+                     FROM creativeWorks:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
+                          (hasObjectInstance>:e1) - ClassInstance:t1
+                     WHERE t.uri == "http://www.bbc.co.uk/ontologies/bbc/primaryContentOf"
+                     ACCUM s.@primaryContentOf += 1;
+  
+  # find the topics that theses creativeworks mention and count the number of creativeworks each mention has
+  mention = SELECT t1
+            FROM primaryContentOf:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
+                  (hasObjectInstance>:e1) - ClassInstance:t1
+            WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions" AND
+                  s.@primaryContentOf > 1 
+            ACCUM t1.@mentions += 1;
+  
+  # print out the results
+  SELECT s.uri AS mentions, s.@mentions AS counts INTO T
+  FROM mention:s
+  GROUP BY s.uri
+  ORDER BY counts DESC, mentions ASC
+  LIMIT 10;
+
+  PRINT T;
+}

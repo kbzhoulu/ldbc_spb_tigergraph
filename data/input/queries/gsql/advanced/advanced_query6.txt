@@ -1,0 +1,57 @@
+CREATE QUERY advanced_query6_optimized(/* Parameters here */) FOR GRAPH ldbc_spb { 
+  /* Write query logic here */ 
+  /*
+  query number: advanced_query6.txt
+  query discription: 
+  Retrieve the N most popular topic types that creative works are about. Adds a filter on
+  coverage and audience properties. This query returns the first ten results grouped by
+  topic type, ordered in descending order using the number of uses of each topic type.
+  
+  */
+  
+  ListAccum<STRING> @topic;
+  MaxAccum<STRING> @coverage;
+  MaxAccum<STRING> @audience;
+  
+  # filter instances of creativework with the given audience type
+  internationalaudience = SELECT s
+                          FROM ClassInstance:s
+                          WHERE s.uri ==  "http://www.bbc.co.uk/ontologies/creativework/InternationalAudience";
+  
+  audience = SELECT s
+             FROM internationalaudience:t - (<hasObjectInstance:e) - ObjectPropertyInstance:t1 -
+                  (<hasObjectPropertyInstance:e1) - ClassInstance:s
+             WHERE t1.uri == "http://www.bbc.co.uk/ontologies/creativework/audience"
+             ACCUM s.@audience += t.uri;
+  
+  # filter instances of creativework with the given livecoverage type
+  negativeCoverage = SELECT s
+                     FROM ValueInstance:s
+                     WHERE s.value == "false";
+  
+  coverage = SELECT s
+             FROM negativeCoverage:t - (<hasValueInstance:e) - DatatypePropertyInstance:t1 - 
+                  (<hasDatatypePropertyInstance:e1) - audience:s
+             WHERE t1.uri == "http://www.bbc.co.uk/ontologies/creativework/liveCoverage"
+             ACCUM s.@coverage += t.value;
+  
+  # collect the topics that the creativeworks are about and the type of the topics
+  topicTypes = SELECT t3
+               FROM coverage:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
+                    (hasObjectInstance>:e1) - ClassInstance:t1 - (hasObjectPropertyInstance>:e2) - 
+                    ObjectPropertyInstance:t2 - (hasObjectInstance>:e3) - ClassInstance:t3
+               WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about" AND
+                     t2.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+               ACCUM t3.@topic += s.uri,
+                     t3.@coverage += s.@coverage,
+                     t3.@audience += s.@audience;
+
+  # print out the results
+  SELECT s.uri AS aboutType, s.@topic.size() AS counts, s.@coverage AS coverages, s.@audience AS audiences INTO T
+  FROM topicTypes:s
+  GROUP BY s.uri, s.@coverage, s.@audience
+  ORDER BY counts DESC
+  LIMIT 10;
+  
+  PRINT T;
+}

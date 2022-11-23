@@ -1,0 +1,69 @@
+CREATE QUERY basic_query9_optimized() FOR GRAPH ldbc_spb { 
+  /* Write query logic here */ 
+  /*
+  query name: basic_query9.txt
+  query description:
+  Retrieve 10 similar creative works, by calculating their similarity score. The creative
+  works should be ordered by the computed score and in descending order of the value
+  of property dateModified.
+  
+  example:
+  creativeWork: http://www.bbc.co.uk/things/23#id
+  */
+  
+  SumAccum<INT> @about;
+  SumAccum<INT> @mentions;
+  SumAccum<INT> @aboutMentions;
+  SumAccum<INT> @score;
+  SetAccum<VERTEX> @@relatedNode;
+  MaxAccum<STRING> @dateModified;
+  
+  # find the topics that the given creativework are about
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/things/23#id";
+  
+  gatherAbout = SELECT t1
+                FROM creativework:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
+                     (hasObjectInstance>:e1) - ClassInstance:t1 
+                WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about"; 
+  
+  # find other creativeworks that are about these topics
+  relatedCWAbout = SELECT s
+                   FROM gatherAbout:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
+                        (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                   WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about"
+                   ACCUM s.@about += 1, @@relatedNode += s;
+  
+  # find the topics that the given creativework mentions
+  gatherMentions = SELECT t1
+                   FROM creativework:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t -
+                        (hasObjectInstance>:e1) - ClassInstance:t1 
+                   WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions"; 
+  
+  # find other creativeworks also mention these topics
+  relatedCWMentions = SELECT s
+                      FROM gatherMentions:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
+                           (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                      WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions"
+                      ACCUM s.@mentions += 1, @@relatedNode += s;
+  
+  # find other creativeworks also mention the topics that the given creativework is about
+  relatedCWAboutMentions = SELECT s
+                           FROM gatherAbout:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
+                                (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                           WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions"
+                           ACCUM s.@aboutMentions += 1, @@relatedNode += s;
+  
+  result = {@@relatedNode};
+  
+  result = SELECT s
+           FROM result:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
+                (hasValueInstance>:e1) - ValueInstance:t1
+           WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified"
+           ACCUM s.@score = s.@about * 2 + s.@mentions * 0.5 + s.@aboutMentions, s.@dateModified += t1.value
+           ORDER BY s.@score DESC, s.@dateModified DESC
+           LIMIT 10;
+  
+  PRINT result[result.uri, result.@dateModified, result.@score];
+}

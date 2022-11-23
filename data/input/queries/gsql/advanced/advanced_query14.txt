@@ -1,0 +1,78 @@
+CREATE QUERY advanced_query14_optimized(/* Parameters here */) FOR GRAPH ldbc_spb { 
+  /* Write query logic here */ 
+  /*
+  query name: advanced_query14.txt
+  query description: 
+  Retrieve a list of N creative works, the ’things’ they are about and mention, their
+  categories, the modification date, thumbnail, and primary format. Filter results by
+  audience type, document type and primary format. This is a star-shaped query that
+  involves nine triple patterns (eight joins).
+  */
+  
+  MaxAccum<STRING> @dateModified;
+  SetAccum<STRING> @about;
+  SetAccum<STRING> @mentions;
+  MaxAccum<STRING> @category;
+  MaxAccum<STRING> @thumbnail;
+  SetAccum<STRING> @primaryFormat;
+  
+  # find all instances of CreativeWorks
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
+  
+  creativeWorks = SELECT s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
+                       (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # filter the results by the type of audience
+  internationalAudience = SELECT s
+                          FROM ClassInstance:s
+                          WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/InternationalAudience";
+  
+  filteredAudience = SELECT s
+                     FROM internationalAudience:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
+                          (<hasObjectPropertyInstance:e1) - creativeWorks:s
+                     WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/audience";
+  
+  # filter the results by the primaryformat
+  primaryformat = SELECT s
+                  FROM ClassInstance:s
+                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/TextualFormat" OR
+                        s.uri == "http://www.bbc.co.uk/ontologies/creativework/PictureGalleryFormat";
+  
+  filteredFormat = SELECT s
+                   FROM primaryformat:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
+                          (<hasObjectPropertyInstance:e1) - filteredAudience:s
+                   WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/primaryFormat";
+  
+  # filter the results by the web document type
+  mobile = SELECT s
+           FROM ClassInstance:s
+           WHERE s.uri == "http://www.bbc.co.uk/ontologies/bbc/Mobile";
+  
+  filteredDocumnetType = SELECT s
+                         FROM mobile:t3- (<hasObjectInstance:e) - ObjectPropertyInstance:t2 -
+                              (<hasObjectPropertyInstance:e1) - ClassInstance:t1 - (<hasObjectInstance:e) - 
+                              ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - filteredFormat:s 
+                         WHERE t.uri == "http://www.bbc.co.uk/ontologies/bbc/primaryContentOf" AND 
+                               t2.uri == "http://www.bbc.co.uk/ontologies/bbc/webDocumentType";
+  
+  # collect all the informations about the rest of creativworks
+  result = SELECT s
+          FROM filteredDocumnetType:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t -
+               ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
+          ACCUM CASE 
+          WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/about" THEN s.@about += t1.uri 
+          WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions" THEN s.@mentions += t1.uri
+          WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/category" THEN s.@category += t1.uri
+          WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified" THEN s.@dateModified += t1.value
+          WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/thumbnail" THEN s.@thumbnail += t1.uri
+          WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/primaryFormat" THEN s.@primaryFormat += t1.uri
+          END
+          ORDER BY s.@dateModified DESC
+          LIMIT 200;
+ 
+  PRINT result[result.uri, result.@about, result.@mentions, result.@category, result.@dateModified];  
+}

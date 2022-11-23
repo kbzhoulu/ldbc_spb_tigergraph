@@ -1,0 +1,60 @@
+CREATE QUERY advanced_query17_optimized() FOR GRAPH ldbc_spb { 
+  /* Write query logic here */ 
+  /*
+  query name: advanced_query17.txt
+  query description: 
+  A drill-down query which retrieves a list of Creative Works found within a defined
+  geo-range. Result is analyzed and a random element is selected whose geocoordinates 
+  are again used to further narrow-down the range. Query is re-executed,
+  produces a smaller result. Process is repeated several times, until no results or 
+  iterations limit has been reached.
+  
+  exmaple:
+  referenceLat: 41.57930219264732
+  referenceLong: -1.0231757610303737
+  deviation: 0.2232188735361287
+  */
+  
+  MaxAccum<STRING> @latitude;
+  MaxAccum<STRING> @longitude;
+  MaxAccum<STRING> @dateModified;
+  MaxAccum<STRING> @geonameId;
+  
+  # find all instances of class CreativeWork
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
+  
+  creativeworks = SELECT s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # find all instances that mention a geo-location
+  geolocation = SELECT s
+                FROM creativeworks:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - (hasObjectInstance>:e1) - ClassInstance:t1 - 
+                      (hasDatatypePropertyInstance>:e2) - DatatypePropertyInstance:t2 - (hasValueInstance>:e3) - ValueInstance:t3
+                WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/mentions"
+                ACCUM CASE 
+                WHEN t2.uri == "http://www.w3.org/2003/01/geo/wgs84_pos#lat"
+                THEN s.@latitude += t3.value, s.@geonameId += t1.uri
+                WHEN t2.uri == "http://www.w3.org/2003/01/geo/wgs84_pos#long"
+                THEN s.@longitude += t3.value, s.@geonameId += t1.uri
+                END;
+  
+  # find the dateModified infomation
+  dateModified = SELECT s  
+                 FROM geolocation:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - (hasValueInstance>:e1) - ValueInstance:t1
+                 WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified"
+                 ACCUM s.@dateModified += t1.value;
+
+  # filter the results based on the geometry info
+  results = SELECT s
+            FROM dateModified:s
+            WHERE str_to_float(s.@latitude) >= (41.57930219264732 - 0.2232188735361287) AND
+                  str_to_float(s.@latitude) <= (41.57930219264732 + 0.2232188735361287) AND 
+                  str_to_float(s.@longitude) >= (-1.0231757610303737 - 0.2232188735361287) AND            
+                  str_to_float(s.@longitude) <= (-1.0231757610303737 + 0.2232188735361287)
+            LIMIT 1000;
+ 
+  PRINT results;
+}

@@ -1,0 +1,95 @@
+CREATE QUERY advanced_query16_optimized(/* Parameters here */) FOR GRAPH ldbc_spb { 
+  /* Write query logic here */ 
+  /*
+  query name: advanced_query16.txt
+  query description:
+  Retrieve a list of N creative works, their title, the ’things’ they are about and mention,
+  their categories and titles containing certain word. This select query returns the first
+  distinct 500 creative works, ordered by their tag, that have an optional national
+  audience. The filter expression selects those creative works whose title contains the
+  word “policy”. This is a large query that involves reasoning for the rdfs:subClassOf
+  and rdfs:subPropertyOf subsumption hierarchies. This is a star-shaped query that
+  involves five triple patterns.
+  */
+  
+  SetAccum<STRING> @tag;
+  ListAccum<STRING> @category;
+  MaxAccum<STRING> @title;
+  SetAccum<STRING> @am;
+  SetAccum<STRING> @@subPropertyOftag;
+  
+  # find all instances of class CreativeWork
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
+  
+  creativeworks = SELECT s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # find subclass of CreativeWork
+  subclassofCW = SELECT s
+                 FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                 WHERE t.uri == "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+ 
+  # find the instances of creativework and its subclasses
+  instances = SELECT s
+              FROM subclassofCW:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - creativeworks:s
+              WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # filter the results by the specific audience type
+  internationalAudience = SELECT s
+                          FROM ClassInstance:s
+                          WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/InternationalAudience";
+  
+  filteredAudience = SELECT s
+                     FROM internationalAudience:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t -
+                          (<hasObjectPropertyInstance:e1) - instances:s
+                     WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/audience";
+  
+  # find the subProperty of cwork:tag
+  propertyTag = SELECT s
+                FROM ClassInstance:s
+                WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/tag";
+  
+  subPropertyOftag = SELECT s
+                     FROM propertyTag:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - 
+                          (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                     WHERE t.uri == "http://www.w3.org/2000/01/rdf-schema#subPropertyOf"
+                     ACCUM @@subPropertyOftag += s.uri;
+  
+  # find the topics that the creativeworks have been tagged
+  tag = SELECT s
+        FROM filteredAudience:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
+              (hasObjectInstance>:e1) - ClassInstance:t1
+        WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/tag" 
+        ACCUM s.@tag += t1.uri;
+  
+  # find the topics that the creativeworks are about or mention, which are two subProperties Of cwork:tag
+  FOREACH item in @@subPropertyOftag DO
+    tag = SELECT s
+              FROM filteredAudience:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
+                 (hasObjectInstance>:e1) - ClassInstance:t1
+              WHERE t.uri == item
+              ACCUM s.@am += t1.uri;
+  END;
+  
+  # collect category and title info
+  info = SELECT s
+         FROM tag:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
+              ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
+         ACCUM CASE t.uri
+         WHEN "http://www.bbc.co.uk/ontologies/creativework/category" THEN s.@category += t1.uri
+         WHEN "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t1.value
+         END;
+  
+  # filter the title by containing a word and tag equals am
+  result = SELECT s
+           FROM info:s
+           WHERE instr(s.@title, "policy") != -1 AND
+                 s.@tag == s.@am
+           LIMIT 100;
+  
+  PRINT result[result.uri, result.@tag, result.@category, result.@title];
+
+}

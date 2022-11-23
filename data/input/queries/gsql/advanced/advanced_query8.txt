@@ -1,0 +1,53 @@
+CREATE QUERY advanced_query8_optimized() FOR GRAPH ldbc_spb { 
+  /* Write query logic here */
+  /*
+  query name: advanced_query8.txt
+  query description: 
+  Retrieve the N most popular topics creative works that have been modified in a time
+  range of one hour are about. This query returns results, grouped by topic, ordered in
+  descending order by the number of appearances of each topic. A filter expression
+  checks whether the modification of a creative work is within the specified time range,
+  and whether the audience of the creative work has the specified value.
+  
+  example:
+  startDateTime: 2011-10-30T17:33:56Z
+  endDateTime: 2011-10-30T18:33:56Z
+  */
+  
+  MaxAccum<STRING> @dateModified;
+  SumAccum<INT> @about;
+  
+  # find the creativeworks which have specific audience 
+  internationalAudience = SELECT s
+                          FROM ClassInstance:s
+                          WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/InternationalAudience";
+  
+  audience = SELECT s
+             FROM internationalAudience:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - 
+                  (<hasObjectPropertyInstance:e1) - ClassInstance:s
+             WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/audience";
+  
+  # collect the dateModified information of each creativework
+  dateModified = SELECT s
+                 FROM audience:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t -
+                      (hasValueInstance>:e1) - ValueInstance:t1
+                 WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified"
+                 ACCUM s.@dateModified += t1.value;
+  
+  # collect the topic that theses creativeworks are about and count the number of creativeworks of each topic
+  topic = SELECT t1
+          FROM dateModified:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
+               (hasObjectInstance>:e1) - ClassInstance:t1
+          WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about" AND
+                to_datetime(s.@dateModified) >= to_datetime("2011-10-30T17:33:56Z") AND
+                to_datetime(s.@dateModified) < to_datetime("2011-10-30T18:33:56Z")
+          ACCUM t1.@about += 1;
+  
+  # print out the restlt
+  SELECT s.uri AS topics, s.@about AS counts INTO T
+  FROM topic:s
+  GROUP BY s.uri
+  ORDER BY counts DESC, topics ASC;
+  
+  PRINT T;  
+}

@@ -1,0 +1,75 @@
+CREATE QUERY basic_query8_optimized() FOR GRAPH ldbc_spb { 
+  /* Write query logic here */ 
+  /*
+  query name: basic_query8_optimized.txt
+  query description: 
+  Retrieve the graphs of resources that are instances of class CreativeWork considering
+  also its subclasses that comprise the resources’ type, title, description, dateCreated,
+  dateModified, category, the topic they are about, their primaryContentOf and the
+  latter’s webDocumentType. Each of the returned resources should contain in its title
+  or description a given string. (full text search query)
+  
+  example:
+  titleWord: started
+  descriptionWord: evident
+  randomLimit: 1000
+  */
+  
+  SetAccum<STRING> @rdfType;
+  MaxAccum<STRING> @title;
+  SetAccum<STRING> @about;
+  MaxAccum<STRING> @description;
+  MaxAccum<STRING> @dateModified;
+  MaxAccum<STRING> @dateCreated;
+  SetAccum<STRING> @category;
+  SetAccum<STRING> @primaryContentOf;
+  SetAccum<STRING> @webDocumentType;
+  
+  # find the subclasses of CreativeWork
+  creativeworks = SELECT s
+                  FROM ClassInstance:s
+                  WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
+  
+  subClassesOfCW = SELECT s
+                   FROM creativeworks:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                   WHERE t.uri == "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+  
+  # find the instance of CreativeWork and its subclasses and save its resource type, such as BlogPost
+  instances = SELECT s
+              FROM subClassesOfCW:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+              WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+  # full text search to narrow down the search results
+  fullTextSearch = SELECT s
+                   FROM instances:s - (hasDatatypePropertyInstance>:e) - 
+                        DatatypePropertyInstance:t - (hasValueInstance>:e1) - ValueInstance:t1
+                   WHERE (t.uri == "http://www.bbc.co.uk/ontologies/creativework/title" AND instr(t1.value, "started") != -1) OR
+                         (t.uri == "http://www.bbc.co.uk/ontologies/creativework/description" AND instr(t1.value, "evident") != -1)          
+                   ACCUM s.@title += t1.value, s.@description += t1.value;
+
+  # find the details of the returned instances: title, description, dateCreated, dateModified, category, primaryContentOf 
+  findProperty = SELECT s
+                 FROM fullTextSearch:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - 
+                      (ObjectPropertyInstance|DatatypePropertyInstance):t - ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
+                 ACCUM CASE t.uri
+                 WHEN "http://www.bbc.co.uk/ontologies/creativework/dateModified" THEN s.@dateModified += t1.value
+                 WHEN "http://www.bbc.co.uk/ontologies/creativework/dateCreated" THEN s.@dateCreated += t1.value
+                 WHEN "http://www.bbc.co.uk/ontologies/creativework/category" THEN s.@category += t1.uri
+                 WHEN "http://www.bbc.co.uk/ontologies/creativework/about" THEN s.@about += t1.uri
+                 WHEN "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" THEN s.@rdfType += t1.uri
+                 END
+                 ORDER BY s.@dateModified DESC
+                 LIMIT 1000;
+  
+  # find the webDocumentType of the resouce's primaryContent
+  webDocumentType = SELECT t1
+                    FROM findProperty:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - (hasObjectInstance>:e1) - ClassInstance:t1 -
+                          (hasObjectPropertyInstance>:e2) - ObjectPropertyInstance:t2 - (hasObjectInstance>:e3) - ClassInstance:t3
+                    WHERE t.uri == "http://www.bbc.co.uk/ontologies/bbc/primaryContentOf" AND 
+                          t2.uri == "http://www.bbc.co.uk/ontologies/bbc/webDocumentType"
+                    ACCUM s.@primaryContentOf += t1.uri, t1.@webDocumentType += t3.uri;
+  
+  PRINT findProperty;
+  PRINT webDocumentType[webDocumentType.@webDocumentType];
+
+}

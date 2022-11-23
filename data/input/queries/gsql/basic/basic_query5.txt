@@ -1,0 +1,84 @@
+CREATE QUERY basic_query5_optimized() FOR GRAPH ldbc_spb { 
+  /* Write query logic here */ 
+  
+  /*
+  query name: basic_query5_optimized.txt
+  query description: 
+  Return the list of most popular topics that creative works of a given type are about,
+  have a given audience, and they have been created in a specific time range
+  (dateModified is between a start and an end date). For each retrieved topic get its
+  properties (if they exist) cannonicalName and preferredLabel; and if any of the labels
+  exist, return it as a result along with the count of topics with this label. The result
+  should be returned on descending order of the count of labels.
+  
+  example:
+  startDateTime: 2011-10-06T02:40:51Z
+  endDateTime: 2011-10-10T03:40:51Z
+  */
+  
+  MaxAccum<STRING> @dateModified;
+  MaxAccum<STRING> @label;
+  SetAccum<STRING> @cw;
+  
+  # find the instances of the given type
+  blogpost = SELECT s
+             FROM ClassInstance:s
+             WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/BlogPost";
+  
+  creativeworks = SELECT s
+                  FROM blogpost:t1 - (<hasObjectInstance) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # filter the instances have a given audience
+  internationalAudience = SELECT s
+                          FROM ClassInstance:s
+                          WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/InternationalAudience";
+  
+  audience = SELECT s
+             FROM internationalAudience:t1- (<hasObjectInstance) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance) - creativeworks:s
+             WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/audience";
+  
+  # find the dateModified info and filter the results within a time range based on the dateModified
+  dateModified = SELECT s
+                 FROM audience:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
+                      (hasValueInstance>:e1) - ValueInstance:t1
+                 WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified" 
+                 ACCUM s.@dateModified += t1.value;
+  
+  # find the topics and prefLabel that the instances are about
+  topics = SELECT t1
+           FROM dateModified:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
+                (hasObjectInstance>:e1) - ClassInstance:t1
+           WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/tag" AND 
+                 to_datetime(s.@dateModified) >= to_datetime("2011-10-06T02:40:51Z") AND 
+                 to_datetime(s.@dateModified) < to_datetime("2011-10-10T03:40:51Z")
+           ACCUM t1.@cw += s.uri;
+  
+  result = SELECT s
+           FROM topics:s - (hasDatatypePropertyInstance>:e) - 
+                DatatypePropertyInstance:t - (hasValueInstance>:e1) - ValueInstance:t1
+           ACCUM CASE t.uri
+           WHEN "http://www.w3.org/2000/01/rdf-schema#label" THEN s.@label += t1.value
+           WHEN "http://xmlns.com/foaf/0.1/name" THEN s.@label += t1.value
+           END;
+  /*
+  labels = SELECT s
+           FROM topics:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
+                (hasValueInstance>:e1) - ValueInstance:t1;
+           IF t == "http://www.w3.org/2000/01/rdf-schema#label" 
+           THEN s.@label += t1.value;
+           ELSE IF t.uri == "http://xmlns.com/foaf/0.1/name"
+           THEN s.@label += t1.value;
+           ELSE s.@label += "none";
+           END;
+  */
+  
+  SELECT s.@label as label, s.@cw.size() as cnt into T
+  FROM topics:s
+  GROUP BY s.@label
+  ORDER BY cnt DESC, label ASC;
+  
+  PRINT T;
+
+  PRINT T;
+}

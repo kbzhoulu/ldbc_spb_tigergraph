@@ -1,0 +1,66 @@
+CREATE QUERY advanced_query25_optimized(/* Parameters here */) FOR GRAPH ldbc_spb { 
+  /* Write query logic here */ 
+  /*
+  query name: advanced_query25.txt
+  query description: 
+  Query retrieves the 10 most popular entities related to a selected one. Having selected
+  one entity, retrieves an ordered list of other entities that have participated in a
+  correlation with that entity for maximum number of days : looks for co-occurrences
+  and takes into account how long co-occurrences last. An analytical query.
+  */
+  
+  MaxAccum<STRING> @dateCreated;
+  MaxAccum<INT> @year;
+  MaxAccum<INT> @month;
+  MaxAccum<INT> @day;
+  SetAccum<STRING> @about;
+  SetAccum<INT> @years;
+  SetAccum<INT> @months;
+  SetAccum<INT> @days;
+  
+  # find all instances of CreativeWork
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
+  
+  creativeworks = SELECT s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # find the creativeworks are about two specific topics
+  topic = SELECT s
+          FROM ClassInstance:s
+          WHERE s.uri == "http://dbpedia.org/resource/Anders_Henriksson_(poker_player)";
+  
+  about = SELECT s
+          FROM topic:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - 
+               (<hasObjectPropertyInstance:e1) - creativeworks:s
+          WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about";
+  
+  # find the dateCreated of the creativework
+  dateCreated = SELECT s
+                FROM about:s - (hasDatatypePropertyInstance>:e) - DatatypePropertyInstance:t - 
+                     (hasValueInstance>:e1) - ValueInstance:t1
+                WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateCreated" 
+                ACCUM s.@dateCreated += t1.value, 
+                      s.@year = year(to_datetime(t1.value)),
+                      s.@month = month(to_datetime(t1.value)), 
+                      s.@day = day(to_datetime(t1.value));
+  
+  # find other topic these crativework are about
+  otherabout = SELECT t1  
+               FROM dateCreated:s - (hasObjectPropertyInstance>:e) - ObjectPropertyInstance:t - 
+                    (hasObjectInstance>:e1) - ClassInstance:t1
+               WHERE t.uri == "http://www.bbc.co.uk/ontologies/creativework/about" AND
+                     t1.uri != "http://dbpedia.org/resource/Anders_Henriksson_(poker_player)"
+               ACCUM t1.@years += s.@year,
+                     t1.@months += s.@month,
+                     t1.@days += s.@day;
+  
+  SELECT s.uri AS uri, s.@days.size() AS days INTO T
+  FROM otherabout:s
+  ORDER BY days DESC, uri ASC
+  LIMIT 10;
+  
+  PRINT T;
+}

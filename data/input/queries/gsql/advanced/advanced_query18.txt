@@ -1,0 +1,54 @@
+CREATE QUERY advanced_query18_optimized() FOR GRAPH ldbc_spb { 
+  /* Write query logic here */ 
+  /*
+  query name: advanced_query18.txt
+  query description:
+  A drill-down query which retrieves a list of Creative Works that have been modified
+  within a defined date-time range. Result is analyzed and another random element is
+  selected. Its modification time is further used again to narrow-down the date-time
+  range. Query is re-executed, produces a smaller result. Process is repeated several
+  times, until no results or iterations limit has been reached.
+  
+  exmaple:
+  startDateTime: 2011-05-01T00:00:00.000
+  endDateTime: 2011-05-31T23:59:59.999
+  */
+  
+  MaxAccum<STRING> @dateModified;
+  MaxAccum<STRING> @title;
+  MaxAccum<STRING> @liveCoverage;
+  MaxAccum<STRING> @category;
+  MaxAccum<STRING> @audience;
+  
+  # find instances of CreativeWork
+  creativework = SELECT s
+                 FROM ClassInstance:s
+                 WHERE s.uri == "http://www.bbc.co.uk/ontologies/creativework/CreativeWork";
+  
+  creativeworks = SELECT s
+                  FROM creativework:t1 - (<hasObjectInstance:e) - ObjectPropertyInstance:t - (<hasObjectPropertyInstance:e1) - ClassInstance:s
+                  WHERE t.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+  
+  # add info of properties
+  findProperty = SELECT s
+                 FROM creativeworks:s - ((hasObjectPropertyInstance>|hasDatatypePropertyInstance>):e) - (ObjectPropertyInstance|DatatypePropertyInstance):t - 
+                  ((hasObjectInstance>|hasValueInstance>):e1) - (ClassInstance|ValueInstance):t1
+                 ACCUM CASE 
+                 WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/dateModified" THEN s.@dateModified += t1.value
+                 WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/title" THEN s.@title += t1.value
+                 WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/liveCoverage" THEN s.@liveCoverage += t1.value
+                 WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/category" THEN s.@category += t1.uri
+                 WHEN t.uri == "http://www.bbc.co.uk/ontologies/creativework/audience" THEN s.@audience += t1.uri
+                 END;
+  
+  # filter within time range
+  results = SELECT s
+            FROM findProperty:s
+            WHERE to_datetime(s.@dateModified) >= to_datetime("2011-05-01T00:00:00.000") AND
+                  to_datetime(s.@dateModified) < to_datetime("2011-05-31T23:59:59.999")
+            ORDER BY s.@dateModified ASC
+            LIMIT 100;
+
+  PRINT results;
+  
+}

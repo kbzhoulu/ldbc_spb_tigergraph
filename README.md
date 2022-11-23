@@ -1,4 +1,4 @@
-# RDF2TigerGraph: Towards Supporting RDF in TigerGraph Property Graph Database
+# RDF2TG: Towards Supporting RDF in TigerGraph Property Graph Database System
 Both RDF and property graph models provide ways to explore and graphically depict connected data. But the two graph models are very different, while each has different strengths in different use cases. RDF is a standard model for data interchange on the Web. RDF has features that facilitate data integration even if the underlying schemas of data sources are different. With the support of RDF Schema (RDFS) and Web Ontology Language (OWL), it enables the inference engine to discover more implicit knowledge in the graph. In contrast, property graphs were developed about efficient storage that would allow for fast querying and traversals across connected data. However, once after choosing one graph model, it is not convenient to losslessly transfer it to another one due to different reasons, e.g, time and cost consumption, technical challenges in converting between two graph models, and different query languages. To provide solutions to customers wanting to migrate their existing RDF graph models to property graph models, we propose a method to migrate [LBDC Semantic Publishing RDF Benchmark (SPB)](https://ldbcouncil.org/benchmarks/spb/) to property graphs using TigerGraph. In addition to mapping about 32 million triples, we also translate 36 SPARQL queries to GSQL, which is the query language used in the TigerGraph database, with an initial analysis of query performance.
 
 ## Reproducibility
@@ -11,11 +11,14 @@ Both RDF and property graph models provide ways to explore and graphically depic
 
 	Run the ipynb file in Jupyter Notebook or run the python code directly 
 
+note: at least 30GB memory is required to run the project 
+
 ## Data Sources
-[LDBC Semantic Publishing Benchmark](https://ldbcouncil.org/benchmarks/spb/)
+* original ldbc website: [LDBC Semantic Publishing Benchmark](https://ldbcouncil.org/benchmarks/spb/)
+* data sets used in this project: [rdf dump in turtle and data files in csv](https://drive.google.com/drive/folders/1FtHs0IK8oYsKY_MDl8RYcMTdKP2kCbx_?usp=share_link)
 
 ## Dependencies
-rdflib, pytigergraph, pandas, hashlib, csv
+rdflib, pytigergraph, pandas, csv
 
 ## Graph Model Mapping
 Mapping Rules and examples from RDF graphs to Tigergraph
@@ -91,7 +94,7 @@ ordered in ascending order by their dateModified.
 
 |Configuration | Value | 
 |:---:|:---:|
-| Graph DBMS | TigerGraph & RDF triple store |
+| Graph DBMS | TigerGraph & RDF triple store (anonymous) |
 | OS | MacOS 12.4 Montery |
 | CPU | 2.3GHz 8-core Intel i9 |
 | Memory | 30G 2667 MHz DDR4 |
